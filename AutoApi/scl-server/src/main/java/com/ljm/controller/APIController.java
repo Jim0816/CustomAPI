@@ -6,16 +6,16 @@ import com.ljm.model.API;
 import com.ljm.common.RequestJSONParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
+import com.ljm.service.DataService;
+import com.ljm.util.MongoDBUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @RequestMapping("interface")
 public class APIController {
     private APIService apiService;
+    private DataService dataService;
 
     /**
      * 创建API对象
@@ -31,14 +32,14 @@ public class APIController {
      * @author Jim
      */
     @PostMapping(value = "/create")
-    public R create(@RequestBody String request) {
+    public R create(@RequestBody String request) throws IOException {
         API api = JSONObject.parseObject(request, API.class);
         api.generateInfo();
-        Integer result = apiService.addApi(api);
-        if(result == 1){
+        boolean result = apiService.addApi(api);
+        if(result){
             return R.ok("操作成功");
         }else{
-            return R.failed(result == 0 ? "当前实体不存在，请先创建该实体!" : "操作失败");
+            return R.failed("操作失败");
         }
     }
 
@@ -51,19 +52,29 @@ public class APIController {
     @PostMapping(value = "/get")
     public R get(@RequestBody String request) {
         API api = JSONObject.parseObject(request, API.class);
-        List<Map> list = apiService.getApi(api.getTag(),api.getCreateUser());
-
-        Map<String,List<Map>> maps = list.stream().filter(item -> {
-            return !item.get("model").toString().contains("sys_");
-        }).collect(Collectors.groupingBy(item -> {
-            return item.get("model").toString();
-        }));
-
+        //查询出所有满足条件的api
         List<Map> res = new ArrayList<>();
-        for (String key : maps.keySet()) {
+        List<Map> list = apiService.getApi(api);
+        Map<String,List<Map>> maps = null;
+        if(list != null && list.size() > 0){
+            //1.先过滤掉系统级别表（系统表sys开头，不参与api操作） 2.按照表名对api进行分类
+            maps = list.stream().filter(item -> {
+                return !item.get("model").toString().contains("sys_");
+            }).collect(Collectors.groupingBy(item -> {
+                return item.get("model").toString();
+            }));
+        }
+
+        //此时maps为 <表名，当前表下满足条件的所有api>
+        Set<String> tableNames = dataService.getCollectionNames();
+        for (String key : tableNames) {
             Map<String, Object> map = new HashMap<>();
             map.put("tableName", key);
-            map.put("apis", maps.get(key));
+            if(maps != null && maps.containsKey(key)){
+                map.put("apis", maps.get(key));
+            }else{
+                map.put("apis", new ArrayList<>());
+            }
             res.add(map);
         }
         return R.ok(res);
@@ -78,7 +89,7 @@ public class APIController {
     @PostMapping(value = "/remove")
     public boolean remove(@RequestBody String request) {
         API api = JSONObject.parseObject(request, API.class);
-        return apiService.removeApi(api.getTag());
+        return apiService.removeApi(api);
     }
 
     /**
@@ -98,4 +109,5 @@ public class APIController {
         }
         return apiService.updateApi(filters, "*", api);
     }
+
 }

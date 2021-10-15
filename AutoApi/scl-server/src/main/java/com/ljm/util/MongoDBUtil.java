@@ -7,14 +7,18 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -38,17 +42,48 @@ public class MongoDBUtil {
     }
 
     /**
+     * 查询所有集合（表）名称
+     * @param
+     * @return
+     * @author Jim
+     */
+    public Set<String> getCollectionNames() {
+        return mongoTemplate.getCollectionNames();
+    }
+
+    /**
      * 创建新集合
      * @param
      * @return
      * @author Jim
      */
-    public boolean createCollection(String collectionName) {
-        MongoCollection mongoCollection =  mongoTemplate.createCollection(collectionName);
+    public boolean createCollection(String tableName) {
+        MongoCollection mongoCollection =  mongoTemplate.createCollection(tableName);
         if(mongoCollection != null)
             return true;
         else
             return false;
+    }
+
+    /**
+     * 注册model结构信息到sys_table，并且在数据库中创建当前model实体
+     * @param
+     * @return
+     * @author Jim
+     */
+    public boolean registerAndCreateCollection(String tableName) throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource("properties/model.properties");
+        Properties properties=new Properties();
+        BufferedReader bf = new BufferedReader(new InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
+        properties.load(bf);
+        String value = properties.getProperty(tableName);
+        JSONObject json = JSONObject.parseObject(value);
+        //1.在sys_table中登记实体表的结构信息
+        if(insertDocument(json,"sys_table")){
+            //2.登记成功，则创建当前库
+            return createCollection(tableName);
+        }
+        return false;
     }
 
     /**
@@ -198,15 +233,7 @@ public class MongoDBUtil {
     }
 
 
-    /**
-     * 查询所有集合（表）名称
-     * @param
-     * @return
-     * @author Jim
-     */
-    public Set<String> allCollections() {
-        return mongoTemplate.getCollectionNames();
-    }
+
 
 
 

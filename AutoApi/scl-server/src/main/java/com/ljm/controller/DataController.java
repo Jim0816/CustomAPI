@@ -5,6 +5,7 @@ import com.ljm.common.RequestJSONParser;
 import com.ljm.model.API;
 import com.ljm.model.RequestTemplate;
 import com.ljm.model.Table;
+import com.ljm.service.APIService;
 import com.ljm.service.DataService;
 import javafx.scene.control.Tab;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,17 +24,22 @@ import java.util.Map;
 public class DataController {
 
     private DataService dataService;
+    private APIService apiService;
 
     /**
-     * 创建集合
+     * 创建集合 (创建集合是默认创建基础增删改查接口)
      * @param request 请求数据（表对象数据）
      * @return
      * @author Jim
      */
     @PostMapping(value = "/create")
-    public boolean create(@RequestBody String request) {
+    public boolean create(@RequestBody String request) throws IOException {
         Table table = JSONObject.parseObject(request, Table.class);
-        return dataService.createCollection(table.addBaseInfo());
+        if(dataService.createCollection(table.addBaseInfo())){
+            //表（集合）创建成功，开始创建基础接口
+            return apiService.createBaseApis(table);
+        }
+        return false;
     }
 
     /**
@@ -67,7 +74,13 @@ public class DataController {
     @PostMapping(value = "/drop")
     public boolean drop(@RequestBody String request) {
         Table table = JSONObject.parseObject(request, Table.class);
-        return dataService.dropCollection(table.getTableName());
+        if(dataService.dropCollection(table.getTableName())){
+            //删除当前表下的所有接口
+            API api = new API();
+            api.setModel(table.getTableName());
+            return apiService.removeApi(api);
+        }
+        return false;
     }
     
 }

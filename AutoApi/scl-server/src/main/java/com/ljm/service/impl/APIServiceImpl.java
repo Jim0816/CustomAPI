@@ -2,6 +2,7 @@ package com.ljm.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.model.API;
+import com.ljm.model.Table;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
@@ -10,14 +11,19 @@ import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 @AllArgsConstructor
 @Service
@@ -27,21 +33,28 @@ public class APIServiceImpl implements APIService {
     private static final String TABLE_NAME ="sys_api";
 
     @Override
-    public Integer addApi(API api) {
+    public boolean addApi(API api) throws IOException {
         //先查看当前表是否存在，若不存在，则返回提示先创建表结构数据
-        return (!mongoDBUtil.isExistCollection(TABLE_NAME)) ? 0 : (mongoDBUtil.insertDocument(api, TABLE_NAME) ? 1 : -1);
+
+        if(mongoDBUtil.isExistCollection(TABLE_NAME)){
+            //当前表存在数据库中
+            return mongoDBUtil.insertDocument(api, TABLE_NAME);
+        }else{
+            //当前表不存在数据库中 -> 1.需要创建表2.并且将表的结构信息注册到sys_table
+            return mongoDBUtil.registerAndCreateCollection(TABLE_NAME);
+        }
     }
 
     @Override
-    public List<Map> getApi(String tag, String createUser) {
+    public List<Map> getApi(API api) {
         QueryModel queryModel = new QueryModel(TABLE_NAME, "*", 0, 10);
         List<FilterModel> filters = new ArrayList<>();
-        if(tag != null && !tag.equals("")){
-            FilterModel filterModel = new FilterModel("tag", tag, "string", "=", "and");
+        if(api.getTag() != null && !api.getTag().equals("")){
+            FilterModel filterModel = new FilterModel("tag", api.getTag(), "string", "=", "and");
             filters.add(filterModel);
         }
-        if(createUser != null && !createUser.equals("")){
-            FilterModel filterModel = new FilterModel("createUser", createUser, "string", "=", "and");
+        if(api.getCreateUser() != null && !api.getCreateUser().equals("")){
+            FilterModel filterModel = new FilterModel("createUser", api.getCreateUser(), "string", "=", "and");
             filters.add(filterModel);
         }
         queryModel.setFilter(filters);
@@ -59,11 +72,16 @@ public class APIServiceImpl implements APIService {
     }
 
     @Override
-    public boolean removeApi(String tag) {
+    public boolean removeApi(API api) {
         //query添加过滤条件
         List<FilterModel> filters = new ArrayList<>();
-        if(tag != null && !tag.equals("")){
-            FilterModel filterModel = new FilterModel("tag", tag, "string", "=", "and");
+        if(api.getModel() != null && !api.getModel().equals("")){
+            FilterModel filterModel = new FilterModel("model", api.getModel(), "string", "=", "and");
+            filters.add(filterModel);
+        }
+
+        if(api.getTag() != null && !api.getTag().equals("")){
+            FilterModel filterModel = new FilterModel("tag", api.getTag(), "string", "=", "and");
             filters.add(filterModel);
         }
         DeleteResult deleteResult = mongoDBUtil.removeDoc(TABLE_NAME, SqlMongoDBParser.addFilters(new Query(), filters));
@@ -79,6 +97,77 @@ public class APIServiceImpl implements APIService {
         if(deleteResult.getDeletedCount() > 0){
             return true;
         }
+        return false;
+    }
+
+    @Override
+    public boolean createBaseApis(Table table) throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource("properties/api.properties");
+        Properties properties=new Properties();
+        BufferedReader bf = new BufferedReader(new InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
+        properties.load(bf);
+
+        API api = new API();
+        api.setModel(table.getTableName());
+        api.setPermission(JSONObject.parseObject(properties.getProperty("permission")).getInnerMap());
+        //1.基础新增
+        api.setRequire(JSONObject.parseObject(properties.getProperty("put_require")).getInnerMap());
+        api.setName("基础-新增");
+        api.setDesc("基础新增接口");
+        api.generateInfo();
+        addApi(api);
+
+        //2.基础查询
+        api.setRequire(JSONObject.parseObject(properties.getProperty("get_require")).getInnerMap());
+        api.setName("基础-查询");
+        api.setDesc("基础查询接口,默认分页");
+        api.generateInfo();
+        addApi(api);
+
+        //3.基础修改
+        api.setRequire(JSONObject.parseObject(properties.getProperty("post_require")).getInnerMap());
+        api.setName("基础-修改");
+        api.setDesc("基础修改接口");
+        api.generateInfo();
+        addApi(api);
+
+        //4.基础删除
+        api.setRequire(JSONObject.parseObject(properties.getProperty("delete_require")).getInnerMap());
+        api.setName("基础-删除");
+        api.setDesc("基础删除接口");
+        api.generateInfo();
+        addApi(api);
+
+        return true;
+    }
+
+    @Override
+    public boolean analysisApi(Map api, JSONObject data) {
+        //操作对象表名
+        String tableName = api.get("model").toString();
+        //操作要求
+        JSONObject require = JSONObject.parseObject(api.get("require").toString());
+        //操作类型
+        String operateType = require.get("operate").toString();
+        //操作条件(难点)
+        if(operateType.equals("put")){
+            //新增操作
+            mongoDBUtil.insertDocument(data, tableName);
+        }else if(operateType.equals("post")){
+            //更新操作
+            mongoDBUtil.insertDocument(data, tableName);
+        }else if(operateType.equals("delete")){
+            //更新操作
+            mongoDBUtil.insertDocument(data, tableName);
+        }else{
+            //查询操作
+
+        }
+
+
+
+        String condition = require.get("condition").toString();
+
         return false;
     }
 }

@@ -334,7 +334,8 @@
             },
             //查询所有集合
             getAllTables(){
-                getApis({"createUser": "100000"}).then((res) => {
+                getApis({}).then((res) => {
+                    console.log(res.data)
                     this.tables = res.data;
                 });
             },

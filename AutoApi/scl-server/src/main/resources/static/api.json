@@ -1,0 +1,106 @@
+[
+  {
+    "uuid": "7b0584771310495faa7f9d6eb2693c91",
+    "model": "tb_user_info",
+    "name": "基础查询",
+    "tag": "211c8U4x56",
+    "url": "127.0.0.1:8081/service/data?tag=211c8U4x56",
+    "permission": {
+      "dept": "1000100",
+      "user": "100000"
+    },
+    "require": {
+      "condition": {
+        "filter": {
+          "(name){<>,string,and}": "jim",
+          "(tel){%,string,and}": "%1234%",
+          "(age){>,int,and}": 20
+        },
+        "limit": {
+          "page_now": 0,
+          "page_size": 10
+        },
+        "sort": [
+          {
+            "time": 1
+          },
+          {
+            "id": -1
+          }
+        ],
+        "return": "*"
+      },
+      "operate": "get"
+    },
+    "createUser": "100000",
+    "time": "2021-10-15T00:44:51.992+00:00",
+    "isDelete": 0
+  },
+  {
+    "uuid": "2ac4baa8e2a5424cacb5cc94e172ba6d",
+    "model": "tb_user_info",
+    "name": "基础新增",
+    "tag": "015mBVk9ns",
+    "url": "127.0.0.1:8081/service/data?tag=015mBVk9ns",
+    "permission": {
+      "dept": "1000100",
+      "user": "100000"
+    },
+    "require": {
+      "condition": {},
+      "operate": "put"
+    },
+    "createUser": "100000",
+    "time": "2021-10-15T00:45:07.920+00:00",
+    "isDelete": 0
+  },
+  {
+    "uuid": "a9adaa5dba504db58b67402b5bd4c077",
+    "model": "tb_user_info",
+    "name": "基础删除",
+    "tag": "T0469Prb4G",
+    "url": "127.0.0.1:8081/service/data?tag=T0469Prb4G",
+    "permission": {
+      "dept": "1000100",
+      "user": "100000"
+    },
+    "require": {
+      "condition": {
+        "filter": {
+          "(name){<>,string,and}": "jim",
+          "(tel){%,string,and}": "%1234%",
+          "(age){>,int,and}": 20
+        }
+      },
+      "operate": "delete"
+    },
+    "createUser": "100000",
+    "time": "2021-10-15T00:45:24.214+00:00",
+    "isDelete": 0
+  },
+  {
+    "uuid": "a371e591c53947249709ac8545709b94",
+    "model": "tb_user_info",
+    "name": "基础修改",
+    "tag": "OrCS6359K5",
+    "url": "127.0.0.1:8081/service/data?tag=OrCS6359K5",
+    "permission": {
+      "dept": "1000100",
+      "user": "100000"
+    },
+    "require": {
+      "condition": {
+        "filter": {
+          "(name){<>,string,and}": "jim",
+          "(tel){%,string,and}": "%1234%",
+          "(age){>,int,and}": 20
+        },
+        "update": "field1,field2,field3"
+      },
+      "operate": "post"
+    },
+    "createUser": "100000",
+    "time": "2021-10-15T00:45:43.266+00:00",
+    "isDelete": 0
+  }
+]

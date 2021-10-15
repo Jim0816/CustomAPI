@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.ljm.model.RequestTemplate;
 import com.ljm.model.Table;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface DataService {
 
@@ -18,13 +20,12 @@ public interface DataService {
     List<Map> getCollections(Table table);
 
     /**
-     * 查询当前数据库下所有集合（包含内部关联数据）
+     * 查询当前数据库下所有集合（只查询集合本身，没有关联数据）
      * @param
      * @return
      * @author Jim
      */
-    List<JSONObject> listComplexCollections();
-
+    Set<String> getCollectionNames();
 
     /**
      * 创建集合 ①创建空表 ②存储该表的描述信息
@@ -50,5 +51,6 @@ public interface DataService {
      * @author Jim
      */
     boolean registerApi(RequestTemplate requestTemplate);
+
 
 }

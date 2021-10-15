@@ -11,13 +11,15 @@ import com.ljm.service.DataService;
 import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -43,10 +45,10 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public List<JSONObject> listComplexCollections() {
-
-        return null;
+    public Set<String> getCollectionNames() {
+        return mongoDBUtil.getCollectionNames().stream().filter(item -> { return !item.contains("sys_"); }).collect(Collectors.toSet());
     }
+
 
     @Override
     public boolean createCollection(Table table) {
@@ -85,6 +87,7 @@ public class DataServiceImpl implements DataService {
     public boolean registerApi(RequestTemplate requestTemplate) {
         return mongoDBUtil.insertDocument(JSONObject.toJSONString(requestTemplate.getData()), BaseConfig.TB_APIS_NAME);
     }
+
 
 
 }

@@ -233,7 +233,6 @@
                 //查询所有集合
                 allTables().then((res) => {
                     this.tableData = res;
-                    console.log(this.tableData);
                 });
             },
             openAdd(type){
@@ -337,7 +336,9 @@
                     });
                 }else{
                     let data = {"tableName": tableName};
-                    dropTable(data).then((res) => {});
+                    dropTable(data).then((res) => {
+                        this.getData();
+                    });
                 }
             },
             switchMenuPage(page){
@@ -391,7 +392,6 @@
                     type: "warning",
                 }).then(() => {
                     this.removeTable(row.tableName);
-                    this.getData();
                 }).catch(() => {});
             },
             handleEditField(index, row){

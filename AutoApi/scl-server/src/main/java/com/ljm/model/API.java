@@ -17,7 +17,7 @@ public class API extends BaseInfo{
     private String model;
 
     /**
-     * 接口操作的数据实体(表名)
+     * 接口名称
      * */
     private String name;
 
@@ -27,7 +27,7 @@ public class API extends BaseInfo{
     private String tag;
 
     /**
-     * 接口功能描述
+     * 接口地址
      * */
     private String url;
 
@@ -46,16 +46,6 @@ public class API extends BaseInfo{
      * */
     private Map<String,Object> require;
 
-
-    /*public API(String desc, String createUser, Map<String,Object> permission, Map<String,Object> require){
-        this.setCreateUser(createUser);
-        this.setIsDelete(0);
-        this.setTime(LocalDateTime.now());
-        this.desc = desc;
-        this.permission = permission;
-        this.require = require;
-    }*/
-
     public void generateInfo(){
         this.setIsDelete(0);
         this.setTime(LocalDateTime.now());
@@ -65,6 +55,4 @@ public class API extends BaseInfo{
         sb.append(this.tag);
         this.url = sb.toString();
     }
-
-
 }

@@ -2,10 +2,12 @@ package com.ljm.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.model.API;
+import com.ljm.model.Table;
 import com.ljm.parseMongo.model.FilterModel;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -14,10 +16,10 @@ public interface APIService {
     /**
      * 根据请求对象,为前端产生一个接口数据
      * @param api 请求对象
-     * @return 返回操作结果状态码 1：表示成功 ; 0：表示当前实体表信息不存在，不执行该操作 ; -1：表示操作失败
+     * @return 返回操作结果状态
      * @author Jim
      */
-    Integer addApi(API api);
+    boolean addApi(API api) throws IOException;
 
     /**
      * 查询API信息
@@ -25,7 +27,7 @@ public interface APIService {
      * @return
      * @author Jim
      */
-    List<Map> getApi(String tag, String createUser);
+    List<Map> getApi(API api);
 
     /**
      * 修改api接口
@@ -41,7 +43,7 @@ public interface APIService {
      * @return
      * @author Jim
      */
-    boolean removeApi(String tag);
+    boolean removeApi(API api);
 
     /**
      * 删除api接口
@@ -50,5 +52,21 @@ public interface APIService {
      * @author Jim
      */
     boolean removeApi(List<FilterModel> filters);
+
+    /**
+     * 统一创建基础接口
+     * @param table 需要创建的接口基于哪张表
+     * @return
+     * @author Jim
+     */
+    boolean createBaseApis(Table table) throws IOException;
+
+    /**
+     * 解析接口
+     * @param api 带解析的接口对象
+     * @return
+     * @author Jim
+     */
+    boolean analysisApi(Map api);
 
 }
