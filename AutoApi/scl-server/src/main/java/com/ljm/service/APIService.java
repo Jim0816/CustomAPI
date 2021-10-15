@@ -61,12 +61,5 @@ public interface APIService {
      */
     boolean createBaseApis(Table table) throws IOException;
 
-    /**
-     * 解析接口
-     * @param api 带解析的接口对象
-     * @return
-     * @author Jim
-     */
-    boolean analysisApi(Map api);
 
 }

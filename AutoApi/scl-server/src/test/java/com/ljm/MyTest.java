@@ -23,14 +23,22 @@ public class MyTest {
     //private MongoDBUtil mongoDBUtil;
 
     @Test
-    public void testMethod() throws IOException {
-        ClassPathResource classPathResource = new ClassPathResource("properties/model.properties");
+    public void testMethod() {
+        String key = "(name){<>,string,and}";
+        String fieldName = key.substring(key.indexOf("(") + 1, key.indexOf(")"));
+        String rule = key.substring(key.indexOf("{") + 1, key.indexOf("}"));
+        String[] splits = rule.split(",");
+        System.out.println(rule);
+
+
+
+        /*ClassPathResource classPathResource = new ClassPathResource("properties/model.properties");
         Properties properties=new Properties();
         BufferedReader bf = new BufferedReader(new  InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
         properties.load(bf);
         System.out.println(properties.getProperty("table"));
         JSONObject josn = JSONObject.parseObject(properties.getProperty("table"));
-        System.out.println(josn);
+        System.out.println(josn);*/
     }
 
 }

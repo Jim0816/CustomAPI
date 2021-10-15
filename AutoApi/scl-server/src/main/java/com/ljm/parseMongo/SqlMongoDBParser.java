@@ -16,92 +16,28 @@ import java.util.*;
 
 public class SqlMongoDBParser{
 
-    /*暂时没有使用到*/
-    public static Map<String, String> splitSql(String sql) {
-        Map<String,String> sqlSplits = new LinkedHashMap<>();
-        try{
-            String formatSql = sql.replaceAll("\\s{1,}", " ").toLowerCase();
-            //提取where子语句
-            int whereSqlStartIndex = formatSql.indexOf("where");
-            if(whereSqlStartIndex != -1){
-                //包含条件，提取条件
-                int whereSqlEndIndex = formatSql.length();
-                int orderSqlStartIndex = formatSql.indexOf("order");
-                int limitSqlStartIndex = formatSql.indexOf("limit");
-                if(orderSqlStartIndex  != -1 || limitSqlStartIndex != -1){
-                    whereSqlEndIndex = Math.min(orderSqlStartIndex, limitSqlStartIndex);
-                    //提取排序子句
-                    if(orderSqlStartIndex != -1){
-                        //存在order语句
-                        int orderSqlEndIndex = formatSql.length();
-                        if(limitSqlStartIndex != -1){
-                            orderSqlEndIndex = Math.min(orderSqlEndIndex, limitSqlStartIndex);
-                            String limitSql = formatSql.substring(limitSqlStartIndex, formatSql.length());
-                            sqlSplits.put("limit", limitSql.trim());
-                        }
-                        String orderSql = formatSql.substring(orderSqlStartIndex, orderSqlEndIndex);
-                        sqlSplits.put("order", orderSql.trim());
-                    }
-                }
-                String whereSql = formatSql.substring(whereSqlStartIndex, whereSqlEndIndex);
-                sqlSplits.put("where", whereSql.trim());
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            System.out.println("=====================================sql格式不正确==================================");
-        }
-        return sqlSplits;
-    }
-
-    /*暂时没有使用到*/
-    public static Map getConditionInfo(JSONObject jsons){
-        String jsonStr = "{\"(name)!={}\": \"jim\",\"(age)!{}\": [10,20,40,55],\"(email)!&{}\": \"%xxx%\",\"@relation\": \"name or (age and email)\"}";
-        JSONObject json = JSONObject.parseObject(jsonStr);
-
-        Map<String,Object> map = json.getInnerMap();
-        String relation = null;
-        Map<String,Condition> conditions = new HashMap<>();
-        for (String key : map.keySet()) {
-            Object value = map.get(key);
-            if(key.contains("@relation")){
-                relation = value.toString();
-            }else {
-                String fieldName = key.substring(key.indexOf('(')+1, key.indexOf(')'));
-                String operate = key.substring(key.indexOf(')')+1, key.indexOf('{'));
-                Condition condition = new Condition(fieldName, operate, value);
-                conditions.put(fieldName, condition);
-            }
-
-        }
-        return null;
-    }
-
     /**
      * 解析用户json请求中的过滤条件
      * @param
      * @return
      * @author Jim
      */
-    public static List<FilterModel> parseRequestFilter(Map<String, Object> filter, JSONObject data){
-        List<FilterModel> resList = new ArrayList<>();
-        for (String key : filter.keySet()) {
-            String fieldName = key.substring(key.indexOf('(') + 1,key.indexOf(')'));
-            //绑定用户传入的条件数据,校验数据是否满足API格式要求
-            Object requestVal = data.get(fieldName);
-            String value = filter.get(key).toString();
-            if(requestVal != null){
-                value = requestVal.toString();
-            }else{
-                System.out.println("数据无效，过滤字段===" + fieldName + "===插入失败!");
-            }
-            String str = key.substring(key.indexOf('{')+1,key.indexOf('}'));
-            String operate = str.split(",")[0];
-            String valueType = str.split(",")[1];
-            String relation = str.split(",")[2];
-            FilterModel filterModel = new FilterModel(fieldName, value, valueType, operate, relation);
-            resList.add(filterModel);
+    public static List<FilterModel> parseFilter(Map<String, Object> filterMap){
+        List<FilterModel> filters = new ArrayList<>();
+        for(String key : filterMap.keySet()){
+            //"(name){<>,string,and}": "jim",
+            String fieldName = key.substring(key.indexOf("(") + 1, key.indexOf(")"));
+            String rule = key.substring(key.indexOf("{") + 1, key.indexOf("}"));
+            String[] splits = rule.split(",");
+
+            String value = filterMap.get(key).toString();
+            String valueOperate = splits[0];
+            String valueType = splits[1];
+            String logicRelation = splits[2];
+            FilterModel filterModel = new FilterModel(fieldName, value, valueType, valueOperate, logicRelation);
+            filters.add(filterModel);
         }
-        return resList;
+        return filters;
     }
 
     /**
@@ -123,16 +59,6 @@ public class SqlMongoDBParser{
         }
         return update;
     }
-
-    /**
-     * 添加过滤条件
-     * @param
-     * @return
-     * @author Jim
-     */
-    /*public static QueryModel transferToQueryModel(JSONObject condition){
-
-    }*/
 
     /**
      * 添加过滤条件
@@ -361,12 +287,6 @@ public class SqlMongoDBParser{
 
         return list;
     }
-
-
-
-
-
-
 
 
 }

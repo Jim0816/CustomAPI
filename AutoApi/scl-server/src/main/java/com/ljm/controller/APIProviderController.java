@@ -38,10 +38,17 @@ public class APIProviderController {
         if(apis.size() > 0){
             //解析当前接口
             Map apiMap = apis.get(0);
-
-
+            Map<String,Object> parseResult = apiProviderService.analysisApi(apiMap);
+            if(parseResult.get("operateType").toString().equals("get")){
+                return R.ok(apiProviderService.get(parseResult));
+            }else if(parseResult.get("operateType").toString().equals("put")){
+                return R.ok(apiProviderService.add(parseResult, JSONObject.parseObject(data)));
+            }else if(parseResult.get("operateType").toString().equals("post")){
+                return R.ok(apiProviderService.update(parseResult, JSONObject.parseObject(data)));
+            }else{
+                return R.ok(apiProviderService.delete(parseResult));
+            }
         }
-
-        return R.failed("接口不存在");
+        return R.failed("接口不存在，无法操作!");
     }
 }

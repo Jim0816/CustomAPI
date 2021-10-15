@@ -141,33 +141,4 @@ public class APIServiceImpl implements APIService {
         return true;
     }
 
-    @Override
-    public boolean analysisApi(Map api, JSONObject data) {
-        //操作对象表名
-        String tableName = api.get("model").toString();
-        //操作要求
-        JSONObject require = JSONObject.parseObject(api.get("require").toString());
-        //操作类型
-        String operateType = require.get("operate").toString();
-        //操作条件(难点)
-        if(operateType.equals("put")){
-            //新增操作
-            mongoDBUtil.insertDocument(data, tableName);
-        }else if(operateType.equals("post")){
-            //更新操作
-            mongoDBUtil.insertDocument(data, tableName);
-        }else if(operateType.equals("delete")){
-            //更新操作
-            mongoDBUtil.insertDocument(data, tableName);
-        }else{
-            //查询操作
-
-        }
-
-
-
-        String condition = require.get("condition").toString();
-
-        return false;
-    }
 }
