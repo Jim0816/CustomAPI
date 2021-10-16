@@ -25,19 +25,42 @@ public class SqlMongoDBParser{
     public static List<FilterModel> parseFilter(Map<String, Object> filterMap){
         List<FilterModel> filters = new ArrayList<>();
         for(String key : filterMap.keySet()){
-            //"(name){<>,string,and}": "jim",
+            //"(name){<>,string,const,and}": "jim",
+            //字段名称
             String fieldName = key.substring(key.indexOf("(") + 1, key.indexOf(")"));
             String rule = key.substring(key.indexOf("{") + 1, key.indexOf("}"));
             String[] splits = rule.split(",");
-
+            //字段值
             String value = filterMap.get(key).toString();
+            //比较规则
             String valueOperate = splits[0];
+            //值的数据类型
             String valueType = splits[1];
-            String logicRelation = splits[2];
-            FilterModel filterModel = new FilterModel(fieldName, value, valueType, valueOperate, logicRelation);
+            //值为常量还是变量  常量直接去配置值，变量取接口中数据
+            String replace = splits[2];
+            String logicRelation = splits[3];
+
+            FilterModel filterModel = new FilterModel(fieldName, replace.equals("const") ? value : "$var", valueType, valueOperate, logicRelation);
             filters.add(filterModel);
         }
         return filters;
+    }
+
+    /**
+     * 解析用户json请求中的排序条件
+     * @param
+     * @return
+     * @author Jim
+     */
+    public static List<SortModel> parseSort(Map<String,Integer> sortMap){
+        List<SortModel> sortModels = new LinkedList<>();
+        if(sortMap.size() > 0){
+            for(String field : sortMap.keySet()){
+                SortModel sortModel = new SortModel(field, sortMap.get(field));
+                sortModels.add(sortModel);
+            }
+        }
+        return sortModels;
     }
 
     /**
@@ -56,6 +79,10 @@ public class SqlMongoDBParser{
             }
         }else{
             //修改部分字段
+            String[] fields = updateFields.split(",");
+            for(String field : fields){
+                update.set(field, values.get(field));
+            }
         }
         return update;
     }
@@ -85,7 +112,7 @@ public class SqlMongoDBParser{
                     case "date":
                         break;
                     case "int":
-                        v = value;
+                        v = Integer.valueOf(value.toString());
                         break;
                     default:
                         break;

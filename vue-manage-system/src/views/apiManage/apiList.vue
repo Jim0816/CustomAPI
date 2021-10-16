@@ -374,6 +374,8 @@
                         if(res){
                             this.$message.success("更新成功");
                             this.getAllTables();
+                            //更新成功后，备份数据也要更新
+                            this.apiObjCopy = data;
                             return true;
                         }else{
                             this.$message.error("更新失败");

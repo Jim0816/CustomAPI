@@ -20,14 +20,10 @@
           "page_now": 0,
           "page_size": 10
         },
-        "sort": [
-          {
-            "time": 1
-          },
-          {
-            "id": -1
-          }
-        ],
+        "sort": {
+          "age": -1,
+          "id": 1
+        },
         "return": "*"
       },
       "operate": "get"

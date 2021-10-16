@@ -1,13 +1,10 @@
 package com.ljm.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.common.RequestJSONParser;
 import com.ljm.model.API;
-import com.ljm.model.RequestTemplate;
 import com.ljm.model.Table;
 import com.ljm.service.APIService;
 import com.ljm.service.DataService;
-import javafx.scene.control.Tab;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @RestController
@@ -50,7 +48,13 @@ public class DataController {
      */
     @PostMapping(value = "/tables")
     public List<Map> listCollection() {
-        return dataService.getCollections(null);
+        List<Map> tables = dataService.getCollections(null);
+        if(tables != null && tables.size() > 0){
+            return tables.stream().filter(item -> {
+                return !item.get("tableName").toString().contains("sys_");
+            }).collect(Collectors.toList());
+        }
+        return tables;
     }
 
     /**

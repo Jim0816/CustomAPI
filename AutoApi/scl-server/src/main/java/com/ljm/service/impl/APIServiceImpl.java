@@ -35,13 +35,18 @@ public class APIServiceImpl implements APIService {
     @Override
     public boolean addApi(API api) throws IOException {
         //先查看当前表是否存在，若不存在，则返回提示先创建表结构数据
-
         if(mongoDBUtil.isExistCollection(TABLE_NAME)){
             //当前表存在数据库中
             return mongoDBUtil.insertDocument(api, TABLE_NAME);
         }else{
             //当前表不存在数据库中 -> 1.需要创建表2.并且将表的结构信息注册到sys_table
-            return mongoDBUtil.registerAndCreateCollection(TABLE_NAME);
+            if(mongoDBUtil.registerAndCreateCollection(TABLE_NAME)){
+                //表创建成功，插入数据
+                return mongoDBUtil.insertDocument(api, TABLE_NAME);
+            }else{
+                //表创建失败
+                return false;
+            }
         }
     }
 

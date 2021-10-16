@@ -43,14 +43,4 @@ public interface DataService {
      */
     boolean dropCollection(String tableName);
 
-
-    /**
-     * 在指定集合下注册接口
-     * @param requestTemplate 接口对象
-     * @return
-     * @author Jim
-     */
-    boolean registerApi(RequestTemplate requestTemplate);
-
-
 }

@@ -92,10 +92,14 @@ public class MongoDBUtil {
      * @return
      * @author Jim
      */
-    public boolean insertDocument(Object data, String collectionName) {
+    public boolean insertDocument(Object data, String tableName) {
         boolean result = true;
         try{
-            mongoTemplate.insert(data, collectionName);
+            mongoTemplate.insert(data, tableName);
+            System.out.println("================================mongodb insert sql start======================================");
+            System.out.println("表名： "+tableName);
+            System.out.println("数据： "+data);
+            System.out.println("================================mongodb insert sql end========================================");
         }catch (Exception e){
             result = false;
             e.printStackTrace();
@@ -125,13 +129,16 @@ public class MongoDBUtil {
             SqlMongoDBParser.addFilters(query, model.getFilter());
             //1.3 query添加排序条件
             SqlMongoDBParser.addSorts(query, model.getSort());
-            System.out.println(query);
             //1.4 query添加分页条件
             long totalCount = mongoTemplate.count(query, tableName);
             if (totalCount == 0) {
                 return null;
             }
             SqlMongoDBParser.addLimit(query, model);
+            System.out.println("================================mongodb select sql start======================================");
+            System.out.println("表名： "+tableName);
+            System.out.println(query);
+            System.out.println("================================mongodb select sql end========================================");
             //2.执行查询操作
             result = mongoTemplate.find(query, Map.class, tableName);
         }catch (Exception e){
@@ -147,6 +154,10 @@ public class MongoDBUtil {
      * @author Jim
      */
     public DeleteResult removeDoc(String tableName, Query query){
+        System.out.println("================================mongodb delete sql start======================================");
+        System.out.println("表名： "+tableName);
+        System.out.println(query);
+        System.out.println("================================mongodb delete sql end========================================");
         return mongoTemplate.remove(query, tableName);
     }
 
@@ -157,6 +168,11 @@ public class MongoDBUtil {
      * @author Jim
      */
     public UpdateResult updateDoc(String tableName, Query query, UpdateDefinition update){
+        System.out.println("================================mongodb update sql start======================================");
+        System.out.println("表名： "+tableName);
+        System.out.println(query);
+        System.out.println(update);
+        System.out.println("================================mongodb update sql end========================================");
         return mongoTemplate.updateMulti(query, update, tableName);
     }
 

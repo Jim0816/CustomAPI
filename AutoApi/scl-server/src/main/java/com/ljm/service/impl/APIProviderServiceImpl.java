@@ -4,11 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
+import com.ljm.parseMongo.model.SortModel;
 import com.ljm.service.APIProviderService;
 import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
@@ -53,11 +55,18 @@ public class APIProviderServiceImpl implements APIProviderService {
 
             //4.其他特别条件
             if(operateType.equals("get")){
-                //查询操作,还可能有分页、排序、返回字段   待完成
-
+                //查询操作,还可能有分页、排序、返回字段   待完
+                //排序条件
+                Map<String,Integer> sortMap = (Map<String, Integer>) condition.get("sort");
+                result.put("sort", SqlMongoDBParser.parseSort(sortMap));
+                //分页条件
+                Map<String,Integer> limitMap = (Map<String, Integer>) condition.get("limit");
+                result.put("limit", limitMap);
+                //返回字段
+                result.put("return", condition.get("return") == null ? "*" : condition.get("return").toString());
             }else if(operateType.equals("post")){
                 //更新操作,还可能指定修改字段
-                String update = condition.get("update").toString();
+                String update = condition.get("update") == null ? "*" : condition.get("update").toString();
                 result.put("update", update);
             }
 
@@ -92,8 +101,15 @@ public class APIProviderServiceImpl implements APIProviderService {
 
     @Override
     public List<Map> get(Map<String, Object> operateCondition) {
-        QueryModel queryModel = new QueryModel(operateCondition.get("tableName").toString(), "*", 0, 10);
+        Map<String,Integer> limitMap = (Map<String, Integer>) operateCondition.get("limit");
+        Integer pageNow = 0, pageSize = 10;
+        if(limitMap != null && limitMap.size() > 0){
+            pageNow = limitMap.get("page_now");
+            pageSize = limitMap.get("page_size");
+        }
+        QueryModel queryModel = new QueryModel(operateCondition.get("tableName").toString(), operateCondition.get("return").toString(), pageNow, pageSize);
         queryModel.setFilter((List<FilterModel>) operateCondition.get("filter"));
+        queryModel.setSort((List<SortModel>) operateCondition.get("sort"));
         return mongoDBUtil.query(queryModel);
     }
 }

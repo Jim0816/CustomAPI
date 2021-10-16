@@ -1,7 +1,6 @@
 package com.ljm.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.config.BaseConfig;
 import com.ljm.model.RequestTemplate;
 import com.ljm.model.Table;
 import com.ljm.parseMongo.SqlMongoDBParser;
@@ -81,13 +80,5 @@ public class DataServiceImpl implements DataService {
         }
         return false;
     }
-
-
-    @Override
-    public boolean registerApi(RequestTemplate requestTemplate) {
-        return mongoDBUtil.insertDocument(JSONObject.toJSONString(requestTemplate.getData()), BaseConfig.TB_APIS_NAME);
-    }
-
-
 
 }
