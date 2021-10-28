@@ -134,17 +134,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="MyTest.test" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="scl-server" />
       <extension name="coverage">
@@ -265,6 +254,7 @@
       <workItem from="1634026752572" duration="1288000" />
       <workItem from="1634171088207" duration="27559000" />
       <workItem from="1634357119486" duration="11181000" />
+      <workItem from="1635381579483" duration="93000" />
     </task>
     <servers />
   </component>
