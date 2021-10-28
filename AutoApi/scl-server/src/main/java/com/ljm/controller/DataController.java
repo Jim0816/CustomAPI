@@ -1,8 +1,9 @@
 package com.ljm.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.model.API;
-import com.ljm.model.Table;
+import com.ljm.entity.API;
+import com.ljm.entity.Table;
+import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
 import com.ljm.service.DataService;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,9 +36,34 @@ public class DataController {
     @PostMapping(value = "/create")
     public boolean create(@RequestBody String request) throws IOException {
         Table table = JSONObject.parseObject(request, Table.class);
-        if(dataService.createCollection(table.addBaseInfo())){
+        if(dataService.createCollection(table.addBaseInfo(null))){
             //表（集合）创建成功，开始创建基础接口
             return apiService.createBaseApis(table);
+        }
+        return false;
+    }
+
+    /**
+     * 修改集合
+     * @param request 请求数据（表对象数据）
+     * @return
+     * @author Jim
+     */
+    @PostMapping(value = "/update")
+    public boolean update(@RequestBody String request) throws IOException {
+        Table table = JSONObject.parseObject(request, Table.class);
+        table.setUpdateTime(LocalDateTime.now());
+        table.setUpdateUser("user_uuid");
+        //转换实体类型
+        String jsonStr = JSONObject.toJSONString(table);
+        JSONObject tableJson = JSONObject.parseObject(jsonStr);
+
+        List<FilterModel> filters = new ArrayList<>();
+        String uuid = table.getUuid();
+        if(uuid != null && !uuid.equals("")){
+            FilterModel filterModel = new FilterModel("uuid", uuid, "string", "=", "and");
+            filters.add(filterModel);
+            return dataService.updateCollection(filters, "*", tableJson);
         }
         return false;
     }

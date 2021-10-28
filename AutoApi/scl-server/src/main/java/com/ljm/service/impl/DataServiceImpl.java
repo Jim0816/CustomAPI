@@ -1,22 +1,19 @@
 package com.ljm.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.model.RequestTemplate;
-import com.ljm.model.Table;
+import com.ljm.entity.Table;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
 import com.ljm.service.DataService;
 import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,36 +25,26 @@ public class DataServiceImpl implements DataService {
 
     private static final String TABLE_NAME ="sys_table";
 
-    @Override
-    public List<Map> getCollections(Table table) {
-        QueryModel queryModel = new QueryModel(TABLE_NAME, "*", 0, 10);
-        if(table != null){
-            List<FilterModel> filters = new ArrayList<>();
-            if(table.getTableName() != null && !table.getTableName().equals("")){
-                FilterModel filterModel = new FilterModel("tableName", table.getTableName(), "string", "=", "and");
-                filters.add(filterModel);
-            }
-            queryModel.setFilter(filters);
-        }
-        return mongoDBUtil.query(queryModel);
-
-    }
-
-    @Override
-    public Set<String> getCollectionNames() {
-        return mongoDBUtil.getCollectionNames().stream().filter(item -> { return !item.contains("sys_"); }).collect(Collectors.toSet());
-    }
-
 
     @Override
     public boolean createCollection(Table table) {
         String tableName = table.getTableName();
         //当前表已经存在 || 当前表不存在需要新建
         if(mongoDBUtil.isExistCollection(tableName) || mongoDBUtil.createCollection(tableName)){
-            //将当前新建的表记录插入sys_table表存储
+            //将当前新建的表记录插入sys_table表存储  (登记新建立表的结构信息到sys_table)
             return mongoDBUtil.insertDocument(table,TABLE_NAME);
         }
         return true;
+    }
+
+    @Override
+    public boolean updateCollection(List<FilterModel> filters, String updateFields, JSONObject data) {
+        UpdateDefinition update = SqlMongoDBParser.parseRequestUpdate(updateFields, data);
+        UpdateResult updateResult = mongoDBUtil.updateDoc(TABLE_NAME, SqlMongoDBParser.addFilters(new Query(), filters), update);
+        if(updateResult.getModifiedCount() > 0){
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -79,6 +66,26 @@ public class DataServiceImpl implements DataService {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<Map> getCollections(Table table) {
+        QueryModel queryModel = new QueryModel(TABLE_NAME, "*", 0, 10);
+        if(table != null){
+            List<FilterModel> filters = new ArrayList<>();
+            if(table.getTableName() != null && !table.getTableName().equals("")){
+                FilterModel filterModel = new FilterModel("tableName", table.getTableName(), "string", "=", "and");
+                filters.add(filterModel);
+            }
+            queryModel.setFilter(filters);
+        }
+        return mongoDBUtil.query(queryModel);
+
+    }
+
+    @Override
+    public Set<String> getCollectionNames() {
+        return mongoDBUtil.getCollectionNames().stream().filter(item -> { return !item.contains("sys_"); }).collect(Collectors.toSet());
     }
 
 }

@@ -1,13 +1,17 @@
-package com.ljm.model;
+package com.ljm.entity;
 
+import com.ljm.entity.common.BaseEntity;
 import com.ljm.util.StringUtil;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-public class API extends BaseInfo{
+@Accessors(chain = true)
+public class API extends BaseEntity implements Serializable {
 
     private String uuid;
 
@@ -46,9 +50,11 @@ public class API extends BaseInfo{
      * */
     private Map<String,Object> require;
 
+
+
     public void generateInfo(){
         this.setIsDelete(0);
-        this.setTime(LocalDateTime.now());
+        this.setCreateTime(LocalDateTime.now());
         this.uuid = StringUtil.generateUUID();
         this.tag = StringUtil.generateByRandom(10);
         StringBuilder sb = new StringBuilder("127.0.0.1:8081/service/data?tag=");

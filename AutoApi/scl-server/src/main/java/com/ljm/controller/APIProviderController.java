@@ -2,7 +2,7 @@ package com.ljm.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.api.R;
-import com.ljm.model.API;
+import com.ljm.entity.API;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIProviderService;
 import com.ljm.service.APIService;

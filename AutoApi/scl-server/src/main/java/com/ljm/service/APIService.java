@@ -1,11 +1,9 @@
 package com.ljm.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.model.API;
-import com.ljm.model.Table;
+import com.ljm.entity.API;
+import com.ljm.entity.Table;
 import com.ljm.parseMongo.model.FilterModel;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +20,14 @@ public interface APIService {
     boolean addApi(API api) throws IOException;
 
     /**
+     * 删除api接口
+     * @param
+     * @return
+     * @author Jim
+     */
+    boolean removeApi(API api);
+
+    /**
      * 查询API信息
      * @param
      * @return
@@ -36,14 +42,6 @@ public interface APIService {
      * @author Jim
      */
     boolean updateApi(List<FilterModel> filters, String updateFields, JSONObject data);
-
-    /**
-     * 删除api接口
-     * @param
-     * @return
-     * @author Jim
-     */
-    boolean removeApi(API api);
 
     /**
      * 删除api接口

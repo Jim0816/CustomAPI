@@ -17,6 +17,18 @@ import java.util.*;
 public class SqlMongoDBParser{
 
     /**
+     * 根据表结构校验数据是否合理   如当前插入的数据字段不满足当前版本(最新)的表结构信息 数据中有字段，但是表结构中没有描述当前字段类型
+     * @param tableMetaInfo 表示集合（表）的结构信息 data表示将要添加或者修改的数据
+     * @return
+     * @author Jim
+     */
+    public static boolean checkOperateByMetaData(Map tableMetaInfo, Object data){
+        List<Map> fields = (List<Map>) tableMetaInfo.get("fields");
+        //如何校验后期补充
+        return true;
+    }
+
+    /**
      * 解析用户json请求中的过滤条件
      * @param
      * @return

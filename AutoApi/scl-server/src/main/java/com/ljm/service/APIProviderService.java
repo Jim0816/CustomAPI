@@ -1,8 +1,6 @@
 package com.ljm.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.model.API;
-import org.omg.CORBA.OBJ_ADAPTER;
 
 import java.util.List;
 import java.util.Map;

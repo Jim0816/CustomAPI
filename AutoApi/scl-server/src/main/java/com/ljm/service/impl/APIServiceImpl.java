@@ -1,8 +1,8 @@
 package com.ljm.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ljm.model.API;
-import com.ljm.model.Table;
+import com.ljm.entity.API;
+import com.ljm.entity.Table;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class APIServiceImpl implements APIService {
             return mongoDBUtil.insertDocument(api, TABLE_NAME);
         }else{
             //当前表不存在数据库中 -> 1.需要创建表2.并且将表的结构信息注册到sys_table
-            if(mongoDBUtil.registerAndCreateCollection(TABLE_NAME)){
+            if(mongoDBUtil.registerAndCreateCollectionFromProperties(TABLE_NAME)){
                 //表创建成功，插入数据
                 return mongoDBUtil.insertDocument(api, TABLE_NAME);
             }else{

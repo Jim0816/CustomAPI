@@ -2,6 +2,7 @@ package com.ljm.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.parseMongo.SqlMongoDBParser;
+import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
@@ -16,10 +17,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 @AllArgsConstructor
 @Component
@@ -52,7 +50,7 @@ public class MongoDBUtil {
     }
 
     /**
-     * 创建新集合
+     * 创建新集合 (但是仅仅创建集合，不会将结构信息登记到sys_table中)
      * @param
      * @return
      * @author Jim
@@ -66,22 +64,24 @@ public class MongoDBUtil {
     }
 
     /**
-     * 注册model结构信息到sys_table，并且在数据库中创建当前model实体
+     * 注册model结构信息到sys_table，并且在数据库中创建当前model实体   注意：结构信息从配置文件读取
      * @param
      * @return
      * @author Jim
      */
-    public boolean registerAndCreateCollection(String tableName) throws IOException {
+    public boolean registerAndCreateCollectionFromProperties(String tableName) throws IOException {
         ClassPathResource classPathResource = new ClassPathResource("properties/model.properties");
         Properties properties=new Properties();
         BufferedReader bf = new BufferedReader(new InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
         properties.load(bf);
         String value = properties.getProperty(tableName);
-        JSONObject json = JSONObject.parseObject(value);
-        //1.在sys_table中登记实体表的结构信息
-        if(insertDocument(json,"sys_table")){
-            //2.登记成功，则创建当前库
-            return createCollection(tableName);
+        if(value != null && !value.equals("")){
+            JSONObject json = JSONObject.parseObject(value);
+            if(createCollection(tableName)){
+                return insertDocument(json,"sys_table");
+            }
+        }else{
+            System.out.println("==========================表 :"+tableName+"配置信息读取失败，可能不存在配置文件中=====================");
         }
         return false;
     }
@@ -94,15 +94,22 @@ public class MongoDBUtil {
      */
     public boolean insertDocument(Object data, String tableName) {
         boolean result = true;
-        try{
-            mongoTemplate.insert(data, tableName);
-            System.out.println("================================mongodb insert sql start======================================");
-            System.out.println("表名： "+tableName);
-            System.out.println("数据： "+data);
-            System.out.println("================================mongodb insert sql end========================================");
-        }catch (Exception e){
+        //校验数据是否满足表结构  如当前插入的数据字段不满足当前版本(最新)的表结构信息
+        if(SqlMongoDBParser.checkOperateByMetaData(specialQuery(tableName), data)){
+            //校验通过
+            try{
+                mongoTemplate.insert(data, tableName);
+                System.out.println("================================mongodb insert sql start======================================");
+                System.out.println("表名： "+tableName);
+                System.out.println("数据： "+data);
+                System.out.println("================================mongodb insert sql end========================================");
+            }catch (Exception e){
+                result = false;
+                e.printStackTrace();
+            }
+        }else{
+            System.out.println("================================数据校验失败，无法插入数据库========================================");
             result = false;
-            e.printStackTrace();
         }
         return result;
     }
@@ -147,6 +154,26 @@ public class MongoDBUtil {
         return result;
     }
 
+    /**
+     * 从sys_table表中查询指定表的结构信息
+     * @param tableName 指定表名
+     * @return
+     * @author Jim
+     */
+    public Map specialQuery(String tableName){
+        QueryModel queryModel = new QueryModel("sys_table", "*", 0, 10);
+        List<FilterModel> filters = new ArrayList<>();
+        FilterModel filterModel = new FilterModel("tableName", tableName, "string", "=", "and");
+        filters.add(filterModel);
+        queryModel.setFilter(filters);
+        List<Map> tableMapList = query(queryModel);
+        if(tableMapList.size() > 0){
+            Map findTableStructInfo = tableMapList.get(0);
+            return findTableStructInfo;
+        }
+        System.out.println(tableName+ "表的结构信息不存在!!!");
+        return null;
+    }
     /**
      * 删除文档
      * @param
@@ -197,63 +224,6 @@ public class MongoDBUtil {
         mongoTemplate.dropCollection(collectionName);
         return true;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * 单表条件构造
-     * @param
-     * @return
-     * @author Jim
-     */
-    public Query constructQuery(Map<String, String> conditions) {
-        //1.修改条件
-        Query query = new Query();
-        for (String condition : conditions.keySet()) {
-            //条件类型
-            String conditionType = conditions.get(condition);
-        }
-        return null;
-    }
-
-    /**
-     * 指定集合按照条件修改一个文档
-     * @param collectionName 表名 、data 数据 、conditions 条件
-     * @return
-     * @author Jim
-     */
-    public boolean updateDocument(String collectionName, String data, Map<String, String> conditions) {
-        //1.修改条件
-        Query query = new Query();
-        for (String condition : conditions.keySet()) {
-            //条件类型
-            String conditionType = conditions.get(condition);
-
-        }
-        return false;
-    }
-
-
-
-
-
-
-
 
 
 }
