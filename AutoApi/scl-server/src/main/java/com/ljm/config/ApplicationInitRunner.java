@@ -3,6 +3,7 @@ package com.ljm.config;
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.User;
 import com.ljm.util.MongoDBUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -15,7 +16,7 @@ import java.io.IOException;
  * 用于启动服务时加载执行动作
  * @author Jim
  */
-
+@Slf4j
 @Component
 public class ApplicationInitRunner implements ApplicationRunner {
 
@@ -56,7 +57,7 @@ public class ApplicationInitRunner implements ApplicationRunner {
                     User user = new User(managerUserName, managerPassword, "manager");
                     String jsonStr = JSONObject.toJSONString(user);
                     JSONObject jsonObject = JSONObject.parseObject(jsonStr);
-                    mongoDBUtil.insertDocument(jsonObject, "sys_user");
+                    mongoDBUtil.insertDocumentNeedCheckData(jsonObject, "sys_user");
                 }
             }
         }

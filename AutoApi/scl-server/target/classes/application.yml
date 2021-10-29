@@ -6,18 +6,6 @@ spring:
       uri: mongodb://jim:164411@202.122.39.37:27017/jimTest
 
 
-#logging:
-#  file:
-#    name: scl-server.log
-#    path: /opt/log
-#  config: classpath:logback-spring.xml
-
-#file:
-#  #远程访问连接前缀
-#  remote-url: https://file.jim.jx.cn
-#  #服务器实际存储文件根目录路径
-#  path: /opt/file
-
 manager:
   username: admin
   password: 123456

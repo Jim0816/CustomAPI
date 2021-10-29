@@ -1,19 +1,25 @@
 package com.ljm.parseMongo;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.parseMongo.model.Condition;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
 import com.ljm.parseMongo.model.SortModel;
 import com.ljm.util.DateUtil;
+import com.ljm.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 public class SqlMongoDBParser{
 
     /**
@@ -23,9 +29,56 @@ public class SqlMongoDBParser{
      * @author Jim
      */
     public static boolean checkOperateByMetaData(Map tableMetaInfo, Object data){
-        List<Map> fields = (List<Map>) tableMetaInfo.get("fields");
-        //如何校验后期补充
+        List<Map> fieldsList = (List<Map>) tableMetaInfo.get("fields");
+        JSONObject jsonObject = JSON.parseObject(data.toString());
+        Map<String, Object> dataMap = jsonObject.getInnerMap();
+
+        for(String fieldName : dataMap.keySet()){
+            // 还可以添加数据类型的判断，后期补充
+            boolean curFieldIsFind = false;
+            for(Map fieldMap : fieldsList){
+                String tableStructFieldName = fieldMap.get("name").toString();
+                if(tableStructFieldName.equals(fieldName)){
+                    //找到当前字段
+                    curFieldIsFind = true;
+                    break;
+                }
+            }
+
+            if(!curFieldIsFind){
+                //表结构中没有找到当前字段
+                log.info("字段 "+fieldName + "在表结构中已经不存在!!!");
+                return false;
+            }
+        }
         return true;
+    }
+
+    /**
+     * 根据表结构格式化数据
+     * @param tableMetaInfo 表示集合（表）的结构信息 data表示将要添加或者修改的数据
+     * @return
+     * @author Jim
+     */
+    public static Object formatDateByMetaData(Map tableMetaInfo, Object data){
+        List<Map> fields = (List<Map>) tableMetaInfo.get("fields");
+        JSONObject jsonObject = JSON.parseObject(data.toString());
+        for(Map field : fields){
+            //{"name": "uuid", "type": "String", "default": "", "remark": "user主键"}
+            String fieldName = field.get("name").toString();
+            if(jsonObject.get(fieldName) == null ){
+                if("uuid".equals(fieldName)){
+                    jsonObject.put(fieldName, StringUtil.generateUUID());
+                }else if("isDelete".equals(fieldName)){
+                    jsonObject.put(fieldName, 0);
+                }else if(fieldName.equals("createTime") || fieldName.equals("updateTime")){
+                    jsonObject.put(fieldName, LocalDateTime.now());
+                }else{
+                    jsonObject.put(fieldName, "");
+                }
+            }
+        }
+        return jsonObject;
     }
 
     /**

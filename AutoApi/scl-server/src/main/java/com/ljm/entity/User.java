@@ -29,7 +29,7 @@ public class User extends BaseEntity implements Serializable {
      * */
     private String role;
 
-    public User(String username, String password, String role) {
+    public User(String username, String password, String role) { 
         this.uuid = StringUtil.generateUUID();
         this.username = username;
         this.password = password;

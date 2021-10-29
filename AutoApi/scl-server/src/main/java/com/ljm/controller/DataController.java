@@ -7,6 +7,7 @@ import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
 import com.ljm.service.DataService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @RestController
 @RequestMapping("table")
@@ -57,7 +59,6 @@ public class DataController {
         //转换实体类型
         String jsonStr = JSONObject.toJSONString(table);
         JSONObject tableJson = JSONObject.parseObject(jsonStr);
-
         List<FilterModel> filters = new ArrayList<>();
         String uuid = table.getUuid();
         if(uuid != null && !uuid.equals("")){

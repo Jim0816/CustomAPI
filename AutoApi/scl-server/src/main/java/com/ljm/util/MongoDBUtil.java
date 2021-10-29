@@ -1,6 +1,7 @@
 package com.ljm.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ljm.entity.Table;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
@@ -8,6 +9,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class MongoDBUtil {
@@ -77,13 +80,46 @@ public class MongoDBUtil {
         String value = properties.getProperty(tableName);
         if(value != null && !value.equals("")){
             JSONObject json = JSONObject.parseObject(value);
+            Table table = new Table();
+            table.formatTableObj(json);
             if(createCollection(tableName)){
-                return insertDocument(json,"sys_table");
+                //保存表结构信息(从本地配置中读取，缺少uuid)到sys_table中
+                if("sys_table".equals(tableName)){
+                    //sys_table表自身结构信息最初不存在，不需要校验 (特殊情况) 直接格式化数据入库
+                    json = (JSONObject) SqlMongoDBParser.formatDateByMetaData(json, json);
+                    return insertDocument(json,"sys_table");
+                }else{
+                    //而其他表结构信息要存入sys_table表，需要根据sys_table表结构信息校验
+                    return insertDocumentNeedCheckData(json,"sys_table");
+                }
             }
         }else{
-            System.out.println("==========================表 :"+tableName+"配置信息读取失败，可能不存在配置文件中=====================");
+            log.error("表 :"+tableName+"配置信息读取失败，可能不存在配置文件中");
         }
         return false;
+    }
+
+    /**
+     * 根据表结构校验数据是否合理   如当前插入的数据字段不满足当前版本(最新)的表结构信息 数据中有字段，但是表结构中没有描述当前字段类型
+     * 如果合理，自动格式化数据 ； 如果不合理，拒绝操作
+     * @param data 数据 、tableName表名
+     * @return Object如果为空表示失败，不为空表示校验并且返回格式化后的数据
+     * @author Jim
+     */
+    public Object checkAndFormatDataBeforeToDB(Object data, String tableName){
+        log.info(data.toString());
+        log.info(tableName);
+        //1.查询当前表的结构信息
+        Map tableStructInfo = specialQuery(tableName);
+        if(tableStructInfo != null){
+            if(!SqlMongoDBParser.checkOperateByMetaData(tableStructInfo, data)){
+                log.info("数据校验失败，数据无法操作表: "+tableName);
+                return null;
+            }
+            //2.校验成功，继续格式化数据，准备入库
+            return SqlMongoDBParser.formatDateByMetaData(tableStructInfo, data);
+        }
+        return null;
     }
 
     /**
@@ -94,24 +130,32 @@ public class MongoDBUtil {
      */
     public boolean insertDocument(Object data, String tableName) {
         boolean result = true;
-        //校验数据是否满足表结构  如当前插入的数据字段不满足当前版本(最新)的表结构信息
-        if(SqlMongoDBParser.checkOperateByMetaData(specialQuery(tableName), data)){
-            //校验通过
-            try{
-                mongoTemplate.insert(data, tableName);
-                System.out.println("================================mongodb insert sql start======================================");
-                System.out.println("表名： "+tableName);
-                System.out.println("数据： "+data);
-                System.out.println("================================mongodb insert sql end========================================");
-            }catch (Exception e){
-                result = false;
-                e.printStackTrace();
-            }
-        }else{
-            System.out.println("================================数据校验失败，无法插入数据库========================================");
+        try{
+            mongoTemplate.insert(data, tableName);
+            log.info("======= mongodb insert sql start =========");
+            log.info("表名： "+tableName);
+            log.info("数据： "+data);
+            log.info("======= mongodb insert sql end ===========");
+        }catch (Exception e){
             result = false;
+            e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * 插入文档（带数据校验规则）   （为指定集合加入一个文档）
+     * @param
+     * @return
+     * @author Jim
+     */
+    public boolean insertDocumentNeedCheckData(Object data, String tableName) {
+        if((data = checkAndFormatDataBeforeToDB(data, tableName)) != null){
+            return insertDocument(data, tableName);
+        }else{
+            log.info("校验失败，数据无法操作!"+data.toString());
+            return false;
+        }
     }
 
     /**
@@ -142,10 +186,10 @@ public class MongoDBUtil {
                 return null;
             }
             SqlMongoDBParser.addLimit(query, model);
-            System.out.println("================================mongodb select sql start======================================");
-            System.out.println("表名： "+tableName);
-            System.out.println(query);
-            System.out.println("================================mongodb select sql end========================================");
+            log.info("============mongodb select sql start============");
+            log.info("表名： "+tableName);
+            log.info(query.toString());
+            log.info("============mongodb select sql end==============");
             //2.执行查询操作
             result = mongoTemplate.find(query, Map.class, tableName);
         }catch (Exception e){
@@ -171,7 +215,7 @@ public class MongoDBUtil {
             Map findTableStructInfo = tableMapList.get(0);
             return findTableStructInfo;
         }
-        System.out.println(tableName+ "表的结构信息不存在!!!");
+        log.error(tableName+ "表的结构信息不存在sys_table中!!!");
         return null;
     }
     /**
@@ -181,10 +225,10 @@ public class MongoDBUtil {
      * @author Jim
      */
     public DeleteResult removeDoc(String tableName, Query query){
-        System.out.println("================================mongodb delete sql start======================================");
-        System.out.println("表名： "+tableName);
-        System.out.println(query);
-        System.out.println("================================mongodb delete sql end========================================");
+        log.info("============ mongodb delete sql start =============");
+        log.info("表名： "+tableName);
+        log.info(query.toString());
+        log.info("============ mongodb delete sql end ===============");
         return mongoTemplate.remove(query, tableName);
     }
 
@@ -195,11 +239,11 @@ public class MongoDBUtil {
      * @author Jim
      */
     public UpdateResult updateDoc(String tableName, Query query, UpdateDefinition update){
-        System.out.println("================================mongodb update sql start======================================");
-        System.out.println("表名： "+tableName);
-        System.out.println(query);
-        System.out.println(update);
-        System.out.println("================================mongodb update sql end========================================");
+        log.info("======== mongodb update sql start =========");
+        log.info("表名： "+tableName);
+        log.info(query.toString());
+        log.info(update.toString());
+        log.info("========= mongodb update sql end ==========");
         return mongoTemplate.updateMulti(query, update, tableName);
     }
 

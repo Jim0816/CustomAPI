@@ -1,5 +1,6 @@
 package com.ljm.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.common.BaseEntity;
 import com.ljm.util.StringUtil;
 import lombok.Data;
@@ -38,6 +39,17 @@ public class Table extends BaseEntity implements Serializable {
         this.setCreateTime(LocalDateTime.now());
         this.setCreateUser(username == null || username.equals("") ? "root" : username);
         return this;
+    }
+
+    /**
+     * 格式化table对象数据
+     * @param
+     * @return
+     * @author Jim
+     */
+    public Table formatTableObj(JSONObject obj){
+        Table table = obj.toJavaObject(Table.class);
+        return table;
     }
 
 }
