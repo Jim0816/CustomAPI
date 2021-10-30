@@ -2,7 +2,9 @@ package com.ljm.config;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.User;
+import com.ljm.util.MD5Util;
 import com.ljm.util.MongoDBUtil;
+import com.ljm.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +25,17 @@ public class ApplicationInitRunner implements ApplicationRunner {
     @Autowired
     private MongoDBUtil mongoDBUtil;
 
-    @Value("${manager.username}")
+    @Value("${manager.id}")
+    private String managerId;
+
+    @Value("${manager.nickname}")
     private String managerUserName;
 
     @Value("${manager.password}")
     private String managerPassword;
+
+    @Value("${manager.role}")
+    private String managerRole;
     /**
      * springboot启动成功后，先加载系统配置到数据库
      * @author Jim
@@ -54,7 +62,9 @@ public class ApplicationInitRunner implements ApplicationRunner {
                 mongoDBUtil.registerAndCreateCollectionFromProperties(curTableName);
                 //新建的用户信息表需要把管理员账号存进去
                 if("sys_user".equals(curTableName)){
-                    User user = new User(managerUserName, managerPassword, "manager");
+                    String salt = StringUtil.generateByRandom(6);
+                    String password = MD5Util.encryptFromWebSecretToDB(MD5Util.encryptFromUserToPass(managerPassword),salt);
+                    User user = new User(managerId, managerUserName, password, salt, managerRole);
                     String jsonStr = JSONObject.toJSONString(user);
                     JSONObject jsonObject = JSONObject.parseObject(jsonStr);
                     mongoDBUtil.insertDocumentNeedCheckData(jsonObject, "sys_user");

@@ -7,5 +7,7 @@ spring:
 
 
 manager:
-  username: admin
+  id: ljm@ihep.ac.cn
+  nickname: admin
   password: 123456
+  role: manager

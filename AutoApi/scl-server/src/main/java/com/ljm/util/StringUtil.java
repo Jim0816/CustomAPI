@@ -4,15 +4,33 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class StringUtil {
 
-    public static void main(String[] args) {
-        String res = generateByRandom(6);
-        System.out.println(res);
+    /**
+     * 从字符串中随机组合出几个字符
+     *
+     * @param length 随机字符串的长度(长度小于原字符串)
+     * @return
+     */
+    public static String getRandomCharFromStr(String str, int length){
+        int strLength = str.length();
+        if(length >= strLength){
+            return str;
+        }
+
+        Set<Integer> randomSet = new HashSet<>();
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        while(sb.length() < length){
+            int num = random.nextInt(strLength);
+            if(!randomSet.contains(num)){
+                sb.append(str.charAt(num));
+                randomSet.add(num);
+            }
+        }
+        return sb.toString();
     }
     /**
      * 生成数字和字母组合，字母区分大小写
