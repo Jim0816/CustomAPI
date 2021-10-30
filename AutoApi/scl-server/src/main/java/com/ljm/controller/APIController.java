@@ -1,11 +1,11 @@
 package com.ljm.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.extension.api.R;
 import com.ljm.entity.API;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
 import com.ljm.service.DataService;
+import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,14 +30,14 @@ public class APIController {
      * @author Jim
      */
     @PostMapping(value = "/create")
-    public R create(@RequestBody String request) throws IOException {
+    public Res create(@RequestBody String request) throws IOException {
         API api = JSONObject.parseObject(request, API.class);
         api.generateInfo();
         boolean result = apiService.addApi(api);
         if(result){
-            return R.ok("操作成功");
+            return Res.ok("操作成功");
         }else{
-            return R.failed("操作失败");
+            return Res.failed("操作失败");
         }
     }
 
@@ -48,7 +48,7 @@ public class APIController {
      * @author Jim
      */
     @PostMapping(value = "/get")
-    public R get(@RequestBody String request) {
+    public Res get(@RequestBody String request) {
         API api = JSONObject.parseObject(request, API.class);
         //查询出所有满足条件的api
         List<Map> res = new ArrayList<>();
@@ -75,7 +75,7 @@ public class APIController {
             }
             res.add(map);
         }
-        return R.ok(res);
+        return Res.ok(res);
     }
 
     /**

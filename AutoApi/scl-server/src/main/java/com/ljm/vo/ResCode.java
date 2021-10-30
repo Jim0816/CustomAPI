@@ -13,9 +13,11 @@ public enum ResCode {
     OTHER_ERROR(500100, "其他未知异常，错误信息由用户自定义"),
 
     //登录模块 5002xx
-    LOGIN_ERROR(500210, "密码错误");
+    LOGIN_ERROR(500201, "密码错误"),
+    TOKEN_ERROR(500202, "token验证失败");
     private final long code;
     private final String msg;
+
 
 
     private ResCode(final long code, final String msg) {

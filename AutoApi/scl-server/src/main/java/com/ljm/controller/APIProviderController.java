@@ -1,11 +1,11 @@
 package com.ljm.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.extension.api.R;
 import com.ljm.entity.API;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIProviderService;
 import com.ljm.service.APIService;
+import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,7 +31,7 @@ public class APIProviderController {
      * 改进策略：在接口注册或者修改时，将接口解析结果存在redis中，使用接口时只需要临时查询出当前接口对应的解析结果，拿去执行即可
      */
     @PostMapping(value = "/data")
-    public R create(@RequestBody String data, String tag) {
+    public Res create(@RequestBody String data, String tag) {
         JSONObject acceptData = JSONObject.parseObject(data);
         //1.根据tag查找出对应api对象数据
         API api = new API();
@@ -56,24 +56,24 @@ public class APIProviderController {
                 }
             }catch (Exception e){
                 e.printStackTrace();
-                return R.failed("过滤条件绑定变量失败!");
+                return Res.failed("过滤条件绑定变量失败!");
             }
 
 
             if(parseResult.get("operateType").toString().equals("get")){
                 //查询
-                return R.ok(apiProviderService.get(parseResult));
+                return Res.ok(apiProviderService.get(parseResult));
             }else if(parseResult.get("operateType").toString().equals("put")){
                 //新增
-                return R.ok(apiProviderService.add(parseResult, acceptData));
+                return Res.ok(apiProviderService.add(parseResult, acceptData));
             }else if(parseResult.get("operateType").toString().equals("post")){
                 //修改
-                return R.ok(apiProviderService.update(parseResult, acceptData));
+                return Res.ok(apiProviderService.update(parseResult, acceptData));
             }else{
                 //删除
-                return R.ok(apiProviderService.delete(parseResult));
+                return Res.ok(apiProviderService.delete(parseResult));
             }
         }
-        return R.failed("接口不存在，无法操作!");
+        return Res.failed("接口不存在，无法操作!");
     }
 }

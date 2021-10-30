@@ -1,54 +1,108 @@
 package com.ljm.util;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.ljm.entity.User;
+import com.ljm.vo.TokenState;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.shaded.json.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+@Slf4j
 public class TokenUtil {
-
-    private static final long EXPIRE_TIME= 10*60*60*1000;//过期时间
-    private static final String TOKEN_SECRET="txdy";  //密钥盐
+    /**
+     * 秘钥
+     */
+    private static final byte[] SECRET="DrangoneYu@163fac04467df11fff26d".getBytes();
 
     /**
-     * 签名生成
-     * @param user
-     * @return
+     * 初始化head部分的数据为
+     * {
+     *      "alg":"HS256",
+     *      "type":"JWT"
+     * }
      */
-    public static String sign(User user){
-        String token = null;
-        try {
-            Date expiresAt = new Date(System.currentTimeMillis() + EXPIRE_TIME);
-            token = JWT.create()
-                    .withIssuer("auth0")
-                    .withClaim("username", user.getEmail())
-                    .withExpiresAt(expiresAt)
-                    // 使用了HMAC256加密算法。
-                    .sign(Algorithm.HMAC256(TOKEN_SECRET));
-        } catch (Exception e){
-            e.printStackTrace();
+    private static final JWSHeader header = new JWSHeader(JWSAlgorithm.HS256, JOSEObjectType.JWT, null, null, null, null, null, null, null, null, null, null, null);
+
+
+    public static void main(String[] args) {
+        Map<String , Object> payload=new HashMap<String, Object>();
+        Date date=new Date();
+        payload.put("uid", "291969452");//用户id
+        payload.put("iat", date.getTime());//生成时间
+        payload.put("ext",date.getTime()+1000*60*60);//过期时间1小时
+        // String token=null;
+        String token= TokenUtil.createToken(payload);
+        System.out.println(token);
+
+        Map<String, Object> map = validToken("");
+        for(String key : map.keySet()){
+            System.out.println("key: "+ key + " value: "+map.get(key));
         }
-        return token;
+    }
+
+   /**
+    * 生成token，该方法只在用户登录成功后调用
+    *
+    * @param ，可以存储用户id，token生成时间，token过期时间等自定义字段
+    * @return token字符串,若失败则返回null
+    *
+    * */
+    public static String createToken(Map<String, Object> payload) {
+        String tokenString=null;
+        // 创建一个 JWS object
+        JWSObject jwsObject = new JWSObject(header, new Payload(new JSONObject(payload)));
+        try {
+            // 将jwsObject 进行HMAC签名
+            jwsObject.sign(new MACSigner(SECRET));
+            tokenString=jwsObject.serialize();
+        } catch (JOSEException e) {
+              System.err.println("签名失败:" + e.getMessage());
+              e.printStackTrace();
+        }
+        return tokenString;
     }
 
     /**
-     * 签名验证
+     * 校验token是否合法，返回Map集合,集合中主要包含    state状态码   data鉴权成功后从token中提取的数据
+     * 该方法在过滤器中调用，每次请求API时都校验
      * @param token
-     * @return
+     * @return  Map<String, Object>
      */
-    public static boolean verify(String token){
+    public static Map<String, Object> validToken(String token) {
+        Map<String, Object> resultMap = new HashMap<String, Object>();
         try {
-            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(TOKEN_SECRET)).withIssuer("auth0").build();
-            DecodedJWT jwt = verifier.verify(token);
-            System.out.println("认证通过：");
-            System.out.println("username: " + jwt.getClaim("username").asString());
-            System.out.println("过期时间：      " + jwt.getExpiresAt());
-            return true;
-        } catch (Exception e){
-            return false;
+            JWSObject jwsObject = JWSObject.parse(token);
+            Payload payload = jwsObject.getPayload();
+            JWSVerifier verifier = new MACVerifier(SECRET);
+            if (jwsObject.verify(verifier)) {
+                JSONObject jsonOBj = (JSONObject) payload.toJSONObject();
+                // token校验成功（此时没有校验是否过期）
+                resultMap.put("state", TokenState.VALID.toString());
+                // 若payload包含ext字段，则校验是否过期
+                if (jsonOBj.containsKey("ext")) {
+                    long extTime = Long.valueOf(jsonOBj.get("ext").toString());
+                    long curTime = new Date().getTime();
+                    // 过期了
+                    if (curTime > extTime) {
+                        resultMap.clear();
+                        resultMap.put("state", TokenState.EXPIRED.toString());
+                    }
+                }
+                resultMap.put("data", jsonOBj);
+            } else {
+                // 校验失败
+                resultMap.put("state", TokenState.INVALID.toString());
+            }
+        } catch (Exception e) {
+            //e.printStackTrace();
+            // token格式不合法导致的异常
+            resultMap.clear();
+            resultMap.put("state", TokenState.INVALID.toString());
+            }
+        return resultMap;
         }
-    }
 }

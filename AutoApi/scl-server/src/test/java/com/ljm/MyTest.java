@@ -2,6 +2,7 @@ package com.ljm;
 
 
 
+import com.ljm.util.MD5Util;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,10 +23,8 @@ public class MyTest {
 
     @Test
     public void testMethod() {
-        Logger logger = LoggerFactory.getLogger(getClass());
-        logger.info("======================================info=========================================");
-        logger.warn("======================================warn=========================================");
-        logger.error("======================================error=========================================");
+        String secret = MD5Util.encryptFromUserToPass("123456");
+        System.out.println(secret);
     }
 
 }

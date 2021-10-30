@@ -43,6 +43,8 @@ public class User extends BaseEntity implements Serializable {
      * 用户角色 manager、user
      * */
     private String role;
+    public User(){
+    }
 
     public User(String userId, String nickname, String password, String salt, String role) {
         this.uuid = StringUtil.generateUUID();
