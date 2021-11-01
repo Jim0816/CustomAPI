@@ -14,7 +14,9 @@ public enum ResCode {
 
     //登录模块 5002xx
     LOGIN_ERROR(500201, "密码错误"),
-    TOKEN_ERROR(500202, "token验证失败");
+    TOKEN_ERROR_INVALID(500202, "token不存在或者token格式有误"),
+    TOKEN_ERROR_EXPIRE(500203, "token已经过期"),
+    TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理");
     private final long code;
     private final String msg;
 

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface DataService {
+public interface TableService {
 
 
     /**
@@ -17,7 +17,7 @@ public interface DataService {
      * @return
      * @author Jim
      */
-    boolean createCollection(Table table);
+    boolean createTable(Table table);
 
     /**
      * 修改集合信息

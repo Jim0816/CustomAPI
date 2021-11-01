@@ -3,7 +3,9 @@ import {createStore} from 'vuex'
 export default createStore({
     state: {
         tagsList: [],
-        collapse: false
+        collapse: false,
+        // 存储token
+        Authorization: sessionStorage.getItem('Authorization') ? sessionStorage.getItem('Authorization') : ''
     },
     mutations: {
         delTagsItem(state, data) {
@@ -49,6 +51,11 @@ export default createStore({
         // 侧边栏折叠
         handleCollapse(state, data) {
             state.collapse = data;
+        },
+        // 修改token，并将token存入localStorage
+        changeLogin (state, user) {
+            state.Authorization = user.Authorization;
+            sessionStorage.setItem('Authorization', user.Authorization);
         }
     },
     actions: {},

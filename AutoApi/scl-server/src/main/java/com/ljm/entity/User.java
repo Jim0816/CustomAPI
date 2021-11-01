@@ -3,12 +3,14 @@ package com.ljm.entity;
 import com.ljm.entity.common.BaseEntity;
 import com.ljm.util.StringUtil;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
+@ToString(callSuper = true)
 @Accessors(chain = true)
 public class User extends BaseEntity implements Serializable {
 
@@ -38,6 +40,11 @@ public class User extends BaseEntity implements Serializable {
      * 密码密文
      * */
     private String email;
+
+    /**
+     * 登录状态
+     * */
+    private Integer state;
 
     /**
      * 用户角色 manager、user

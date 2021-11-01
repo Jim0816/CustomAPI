@@ -7,15 +7,21 @@ const service = axios.create({
     timeout: 5000
 });
 
+
 service.interceptors.request.use(
     config => {
+        // 判断是否存在token，如果存在的话，则每个http header都加上token
+        let token = sessionStorage.getItem('Authorization')
+        if (!config.headers.hasOwnProperty('Authorization') && token) {
+            config.headers.Authorization = token;
+        }
         return config;
     },
     error => {
-        console.log(error);
-        return Promise.reject();
+        return Promise.reject(error);
     }
 );
+
 
 service.interceptors.response.use(
     response => {

@@ -3,15 +3,16 @@ package com.ljm.entity;
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.common.BaseEntity;
 import com.ljm.util.StringUtil;
+import com.ljm.vo.Field;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@ToString(callSuper = true)
 @Accessors(chain = true)
 public class Table extends BaseEntity implements Serializable {
 
@@ -22,6 +23,11 @@ public class Table extends BaseEntity implements Serializable {
     private String tableName;
 
     /**
+     * 数据库存储类型 (MongoDB Mysql)
+     * */
+    private String dbType;
+
+    /**
      * 数据对象描述
      * */
     private String desc;
@@ -29,15 +35,41 @@ public class Table extends BaseEntity implements Serializable {
     /**
      * 集合字段
      * */
-    private List<Object> fields;
+    private List<Field> fields;
 
 
+    /**
+     * 新创建的对象
+     * @param type 0表示新创建对象 ， 1表示接受修改对象
+     * @param operateUserUUID 操作用户的uuid
+     * @return
+     * @author Jim
+     */
+    public Table format(int type, String operateUserUUID){
+        if(type == 0){
+            this.uuid = StringUtil.generateUUID();
+            this.setIsDelete(0);
+            this.setCreateTime(LocalDateTime.now());
+            this.setCreateUser(operateUserUUID);
+        }else{
+            this.setUpdateTime(LocalDateTime.now());
+            this.setUpdateUser(operateUserUUID);
+        }
+        return this;
+    }
 
-    public Table addBaseInfo(String username){
-        this.uuid = StringUtil.generateUUID();
+    /**
+     * 修改的对象
+     * @param
+     * @return
+     * @author Jim
+     */
+    public Table updateTable(String userId){
         this.setIsDelete(0);
         this.setCreateTime(LocalDateTime.now());
-        this.setCreateUser(username == null || username.equals("") ? "root" : username);
+        this.setCreateUser(userId);
+        this.setUpdateTime(null);
+        this.setUpdateUser("");
         return this;
     }
 

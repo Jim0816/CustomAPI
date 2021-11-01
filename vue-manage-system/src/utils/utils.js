@@ -48,6 +48,4 @@ function formatJsonToStr1(jsonObj) {
 }
 
 
-
-
 export {getCurrentTime, transform, formatJsonToStr, formatJsonToStr1}

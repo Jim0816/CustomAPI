@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.API;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
-import com.ljm.service.DataService;
+import com.ljm.service.TableService;
 import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequestMapping("interface")
 public class APIController {
     private APIService apiService;
-    private DataService dataService;
+    private TableService dataService;
 
     /**
      * 创建API对象

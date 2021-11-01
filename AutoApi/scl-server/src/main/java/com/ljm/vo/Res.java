@@ -14,6 +14,10 @@ public class Res<T> implements Serializable{
     public Res() {
     }
 
+    public static <T> Res<T> data(T data) {
+        return (Res<T>) restResult(data, 0, "");
+    }
+
     public static <T> Res<T> ok(T data) {
         return (Res<T>) restResult(data, ResCode.SUCCESS.getCode(), ResCode.SUCCESS.getMsg());
     }
@@ -26,6 +30,7 @@ public class Res<T> implements Serializable{
     public static <T> Res<T> failed(ResCode resCode) {
         return (Res<T>) restResult((Object)null, resCode.getCode(), resCode.getMsg());
     }
+
 
     private static <T> Res<T> restResult(T data, long code, String msg) {
         Res<T> apiResult = new Res();

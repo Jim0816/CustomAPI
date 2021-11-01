@@ -72,6 +72,12 @@
                                 <el-form-item required label="表名" prop="tableName">
                                     <el-input v-model="tableObj.tableName" style="background-color: red;"></el-input>
                                 </el-form-item>
+                                <el-form-item required label="存储类型" prop="dbType">
+                                    <el-radio-group v-model="tableObj.dbType">
+                                      <el-radio-button label="MongoDB">MongoDB</el-radio-button>
+                                      <el-radio-button label="Mysql">&nbsp&nbspMysql&nbsp&nbsp</el-radio-button>
+                                    </el-radio-group>
+                                </el-form-item>
                                 <el-form-item required label="数据描述" prop="desc">
                                     <el-input type="textarea" resize="none" :rows="5" v-model="tableObj.desc"></el-input>
                                 </el-form-item>
@@ -99,6 +105,10 @@
                                             <el-option label="Array" value="Array"></el-option>
                                             <el-option label="Object" value="Object"></el-option>
                                         </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="是否必填" prop="isRequire">
+                                        <el-radio v-model="radio" label="1">备选项</el-radio>
+                                        <el-radio v-model="radio" label="2">备选项</el-radio>
                                     </el-form-item>
                                     <el-form-item label="默认值" prop="default">
                                         <el-input v-model="fieldForm.default"></el-input>
@@ -183,6 +193,7 @@
                 tableData: [],
                 tableObj:{
                     tableName: "",
+                    dbType: "MongoDB",
                     desc: "",
                     createUser: "",
                     permission:{},
@@ -191,6 +202,8 @@
                 fieldForm:{
                     name: "",
                     type: "",
+                    isRequire: 1,
+                    length: 20,
                     default: "",
                     remark: ""
                 },

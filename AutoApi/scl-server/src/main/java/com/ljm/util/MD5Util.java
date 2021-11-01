@@ -11,7 +11,7 @@ public class MD5Util {
 
     //加密前端明文：明文 + 前端固定盐  (前端使用这个逻辑，后端管理员默认账号需要用到)
     public static String encryptFromUserToPass(String str){
-        String salt = "1a2b3c";
+        String salt = "1a2b3c"; //这个盐一定要和前端一致，不然管理员无法登录
         return md5(salt.charAt(0) + str + salt.charAt(1) + salt.charAt(salt.length()-1)); //后端盐长度取6  取出3粒盐
     }
 

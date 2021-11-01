@@ -3,6 +3,7 @@ package com.ljm.entity;
 import com.ljm.entity.common.BaseEntity;
 import com.ljm.util.StringUtil;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
+@ToString(callSuper = true)
 @Accessors(chain = true)
 public class API extends BaseEntity implements Serializable {
 

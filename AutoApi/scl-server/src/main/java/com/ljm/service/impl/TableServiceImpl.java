@@ -5,7 +5,7 @@ import com.ljm.entity.Table;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
-import com.ljm.service.DataService;
+import com.ljm.service.TableService;
 import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
-public class DataServiceImpl implements DataService {
+public class TableServiceImpl implements TableService {
 
     private MongoDBUtil mongoDBUtil;
 
@@ -27,7 +27,7 @@ public class DataServiceImpl implements DataService {
 
 
     @Override
-    public boolean createCollection(Table table) {
+    public boolean createTable(Table table) {
         String tableName = table.getTableName();
         //当前表已经存在 || 当前表不存在需要新建
         if(mongoDBUtil.isExistCollection(tableName) || mongoDBUtil.createCollection(tableName)){
