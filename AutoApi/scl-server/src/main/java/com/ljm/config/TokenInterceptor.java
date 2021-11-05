@@ -1,8 +1,10 @@
 package com.ljm.config;
 
 import com.ljm.entity.User;
+import com.ljm.service.UserService;
 import com.ljm.util.TokenUtil;
 import com.ljm.util.TokenUtilTest;
+import com.ljm.vo.AccessUser;
 import com.ljm.vo.Res;
 import com.ljm.vo.ResCode;
 import com.ljm.vo.TokenState;
@@ -25,6 +27,9 @@ import java.util.Map;
 public class TokenInterceptor implements HandlerInterceptor {
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private UserService userService;
     /**
      * 预处理
      * 在业务处理器处理请求之前被调用。可以进行编码、安全控制、权限校验等处理；
@@ -65,24 +70,14 @@ public class TokenInterceptor implements HandlerInterceptor {
             response.getWriter().append(Res.failed(ResCode.TOKEN_ERROR_EXPIRE).toString());
         }else{
             //token合法性校验成功，还需要判断token是否存在（用户是否离线）
-            User user = (User) redisTemplate.opsForValue().get("user:" + token);
-            if(user == null){
+            String redisToken = redisTemplate.opsForValue().get("userid:" + userId).toString();
+            //redis中token已被删除(redis中key过期自动删除 | 用户下线)，或者当前用户对应token已被修改（其他地方登录,被迫下线）
+            if(redisToken == null || !redisToken.equals(token)){
                 //用户已经下线，token被清除
                 response.getWriter().append(Res.failed(ResCode.TOKEN_ERROR_EXIT).toString());
                 log.info("userId:" + userId + "============= 已经离线，token已被清理 ============");
             }else{
-                //用户在线，token鉴权成功，需要更新token开始时间,失效时间
-                Map<String, Object> tokenData = new HashMap<>();
-                tokenData.put("userId", user.getUserId());//用户id
-                Date date = new Date();
-                tokenData.put("iat", date.getTime());//生成时间
-                tokenData.put("ext",date.getTime()+1000*60*60);//过期时间1小时
-                String newToken = TokenUtil.createToken(tokenData);
-                //token存入redis
-                redisTemplate.opsForValue().set("user:" + newToken, user);
-                //将本次请求的用户id存入request中，方便控制器获取
-                request.setAttribute("userId", userId);
-                request.setAttribute("user", user);
+                //用户在线
                 result = true;
             }
         }

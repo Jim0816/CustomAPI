@@ -23,3 +23,7 @@ manager:
   nickname: admin
   password: 123456
   role: manager
+
+other:
+  redis:
+    keepalive: 6h

@@ -1,6 +1,7 @@
 package com.ljm.entity;
 
 import com.ljm.entity.common.BaseEntity;
+import com.ljm.util.DateUtil;
 import com.ljm.util.StringUtil;
 import lombok.Data;
 import lombok.ToString;
@@ -8,6 +9,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 
 @Data
@@ -56,7 +58,7 @@ public class API extends BaseEntity implements Serializable {
 
     public void generateInfo(){
         this.setIsDelete(0);
-        this.setCreateTime(LocalDateTime.now());
+        this.setCreateTime(DateUtil.getDateString());
         this.uuid = StringUtil.generateUUID();
         this.tag = StringUtil.generateByRandom(10);
         StringBuilder sb = new StringBuilder("127.0.0.1:8081/service/data?tag=");

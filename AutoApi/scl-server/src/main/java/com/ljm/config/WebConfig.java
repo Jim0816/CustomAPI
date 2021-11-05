@@ -1,8 +1,10 @@
 package com.ljm.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.*;
 
 import java.util.ArrayList;
@@ -19,6 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private TokenInterceptor tokenInterceptor;
+
+    @Autowired
+    private CurrentUserMethodArgumentResolver currentUserMethodArgumentResolver;
 
     /**
      * 拦截器配置
@@ -37,6 +42,7 @@ public class WebConfig implements WebMvcConfigurer {
         //WebMvcConfigurer.super.addInterceptors(registry);
     }
 
+
     /**
      * 跨域CORS配置
      * @param registry
@@ -47,6 +53,16 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .allowedMethods("*");
+    }
+
+    /**
+     * 参数解析器
+     *
+     * @param argumentResolvers
+     */
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(currentUserMethodArgumentResolver);
     }
 
 

@@ -7,6 +7,7 @@ import com.ljm.entity.User;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
 import com.ljm.service.TableService;
+import com.ljm.vo.AccessUser;
 import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +40,8 @@ public class TableController {
      * @author Jim
      */
     @PostMapping(value = "/create")
-    public Res create(@RequestBody Table table, HttpServletRequest request) {
-        User accessUser = (User) request.getAttribute("user");
+    public Res create(@RequestBody Table table, AccessUser accessUser) {
+        log.info(accessUser.toString());
         /*if(tableService.createTable(table.format(0, accessUser.getUuid()))){
             //表（集合）创建成功，开始创建基础接口
             return apiService.createBaseApis(table);
@@ -73,7 +74,7 @@ public class TableController {
     @PostMapping(value = "/update")
     public boolean update(@RequestBody String request) throws IOException {
         Table table = JSONObject.parseObject(request, Table.class);
-        table.setUpdateTime(LocalDateTime.now());
+        //table.setUpdateTime(LocalDateTime.now());
         table.setUpdateUser("user_uuid");
         //转换实体类型
         String jsonStr = JSONObject.toJSONString(table);

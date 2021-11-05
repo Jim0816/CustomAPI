@@ -12,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 @RunWith(SpringRunner.class)
@@ -23,8 +25,10 @@ public class MyTest {
 
     @Test
     public void testMethod() {
-        String secret = MD5Util.encryptFromUserToPass("123456");
-        System.out.println(secret);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        System.out.println(df.format(new Date()));// new Date()为获取当前系统时间
+
+
     }
 
 }

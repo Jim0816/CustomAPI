@@ -2,6 +2,7 @@ package com.ljm.entity;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.common.BaseEntity;
+import com.ljm.util.DateUtil;
 import com.ljm.util.StringUtil;
 import com.ljm.vo.Field;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -49,10 +51,10 @@ public class Table extends BaseEntity implements Serializable {
         if(type == 0){
             this.uuid = StringUtil.generateUUID();
             this.setIsDelete(0);
-            this.setCreateTime(LocalDateTime.now());
+            this.setCreateTime(DateUtil.getDateString());
             this.setCreateUser(operateUserUUID);
         }else{
-            this.setUpdateTime(LocalDateTime.now());
+            this.setUpdateTime(DateUtil.getDateString());
             this.setUpdateUser(operateUserUUID);
         }
         return this;
@@ -66,7 +68,7 @@ public class Table extends BaseEntity implements Serializable {
      */
     public Table updateTable(String userId){
         this.setIsDelete(0);
-        this.setCreateTime(LocalDateTime.now());
+        this.setCreateTime(DateUtil.getDateString());
         this.setCreateUser(userId);
         this.setUpdateTime(null);
         this.setUpdateUser("");

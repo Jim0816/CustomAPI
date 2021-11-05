@@ -1,13 +1,13 @@
 package com.ljm.entity;
 
 import com.ljm.entity.common.BaseEntity;
+import com.ljm.util.DateUtil;
 import com.ljm.util.StringUtil;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @ToString(callSuper = true)
@@ -64,9 +64,9 @@ public class User extends BaseEntity implements Serializable {
     }
 
     private void setBaseInfo(){
-        this.setCreateTime(LocalDateTime.now());
+        this.setCreateTime(DateUtil.getDateString());
         this.setCreateUser("000000");
-        this.setUpdateTime(LocalDateTime.now());
+        this.setUpdateTime(DateUtil.getDateString());
         this.setUpdateUser("000000");
         this.setIsDelete(0);
     }
