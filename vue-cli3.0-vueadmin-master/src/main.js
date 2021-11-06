@@ -7,9 +7,26 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import './styles/index.scss'
 
+import 'xe-utils'
+import VXETable from 'vxe-table'
+import 'vxe-table/lib/style.css'
+import './styles/vux-table.scss'
+
 import axios from './config/httpConfig'
 import * as globalFilter from './filters/filters'
 import '@/icons'
+
+import fontawesome from '@fortawesome/fontawesome'
+import FontAwesomeIcon from '@fortawesome/vue-fontawesome'
+import solid from '@fortawesome/fontawesome-free-solid'
+import regular from '@fortawesome/fontawesome-free-regular'
+import brands from '@fortawesome/fontawesome-free-brands'
+
+fontawesome.library.add(solid)
+fontawesome.library.add(regular)
+fontawesome.library.add(brands)
+
+Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 Vue.prototype.$http = axios
 
@@ -17,7 +34,7 @@ for (var key in globalFilter) {
     Vue.filter(key, globalFilter[key])
 }
 
-Vue.use(ElementUI)
+Vue.use(ElementUI).use(VXETable)
 
 Vue.config.productionTip = false
 

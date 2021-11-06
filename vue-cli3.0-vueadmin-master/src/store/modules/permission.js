@@ -45,6 +45,10 @@ export default {
             let permissionList = await fetchPermission()
             commit('SET_AVATAR', permissionList.avatar)
             commit('SET_ACCOUNT', permissionList.name)
+            permissionList.data.push('table')
+            permissionList.data.push('table-list')
+            permissionList.data.push('api')
+            permissionList.data.push('api-list')
             let routes = recursionRouter(permissionList.data, dynamicRouter)
             let MainContainer = DynamicRoutes.find(v => v.path === '')
             let children = MainContainer.children
