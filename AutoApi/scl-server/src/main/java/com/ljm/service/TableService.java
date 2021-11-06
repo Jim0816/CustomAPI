@@ -41,7 +41,7 @@ public interface TableService {
      * @return
      * @author Jim
      */
-    List<Map> getCollections(Table table);
+    List<Map> getTables(Table table);
 
     /**
      * 查询当前数据库下所有集合名称（只查询集合本身，没有关联数据）

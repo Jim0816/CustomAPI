@@ -70,10 +70,10 @@
                         <span style="float: left;margin-top:50px;margin-left:0px;width:500px;height: 300px;">
                             <el-form :model="tableObj" ref="ruleForm" label-width="80px" style="margin-left: 30px;">
                                 <el-form-item required label="表名" prop="tableName">
-                                    <el-input v-model="tableObj.tableName" style="background-color: red;"></el-input>
+                                    <el-input v-model="tableObj.tableName" @change="checkFieldName" style="background-color: red;"></el-input>
                                 </el-form-item>
                                 <el-form-item required label="存储类型" prop="dbType">
-                                    <el-radio-group v-model="tableObj.dbType">
+                                    <el-radio-group v-model="tableObj.dbType" :disabled="true">
                                       <el-radio-button label="MongoDB">MongoDB</el-radio-button>
                                       <el-radio-button label="Mysql">&nbsp&nbspMysql&nbsp&nbsp</el-radio-button>
                                     </el-radio-group>
@@ -96,7 +96,7 @@
                                         <el-input v-model="fieldForm.name"></el-input>
                                     </el-form-item>
                                     <el-form-item label="字段类型" prop="type">
-                                        <el-select v-model="fieldForm.type" placeholder="请选择字段数据类型"  clearable style="width: 100%;">
+                                        <el-select v-model="fieldForm.type" placeholder="请选择字段数据类型" @change="changeType" clearable style="width: 100%;">
                                             <el-option label="String" value="String"></el-option>
                                             <el-option label="Int" value="Int"></el-option>
                                             <el-option label="Date" value="Date"></el-option>
@@ -106,9 +106,16 @@
                                             <el-option label="Object" value="Object"></el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="是否必填" prop="isRequire">
-                                        <el-radio v-model="radio" label="1">备选项</el-radio>
-                                        <el-radio v-model="radio" label="2">备选项</el-radio>
+                                    <el-form-item label="字段必填" prop="isRequire">
+                                        <el-radio v-model="fieldForm.isRequire" label="1">是</el-radio>
+                                        <el-radio v-model="fieldForm.isRequire" label="0">否</el-radio>
+                                    </el-form-item>
+                                    <el-form-item label="字段唯一" prop="isUnique">
+                                        <el-radio v-model="fieldForm.isUnique" label="1">是</el-radio>
+                                        <el-radio v-model="fieldForm.isUnique" label="0">否</el-radio>
+                                    </el-form-item>
+                                    <el-form-item label="字段长度" prop="length">
+                                        <el-input-number v-model="fieldForm.length" :disabled="isEdit" :min="-1" :max="300" label="描述文字"></el-input-number>
                                     </el-form-item>
                                     <el-form-item label="默认值" prop="default">
                                         <el-input v-model="fieldForm.default"></el-input>
@@ -128,6 +135,9 @@
                             <el-table-column type="selection" width="55"></el-table-column>
                             <el-table-column prop="name" label="字段名称" align="center"></el-table-column>
                             <el-table-column prop="type" label="类型" align="center"></el-table-column>
+                            <el-table-column prop="isRequire" label="必填" align="center"></el-table-column>
+                            <el-table-column prop="isUnique" label="唯一" align="center"></el-table-column>
+                            <el-table-column prop="length" label="长度" align="center"></el-table-column>
                             <el-table-column prop="default" label="默认值" align="center"></el-table-column>
                             <el-table-column prop="remark" label="备注" align="center"></el-table-column>
                             <el-table-column label="操作" width="180" align="center">
@@ -195,18 +205,18 @@
                     tableName: "",
                     dbType: "MongoDB",
                     desc: "",
-                    createUser: "",
-                    permission:{},
                     fields:[]
                 },
                 fieldForm:{
                     name: "",
                     type: "",
-                    isRequire: 1,
-                    length: 20,
+                    isRequire: '0',
+                    isUnique: '0',
+                    length: 300,
                     default: "",
                     remark: ""
                 },
+                isEdit: true, //是否允许编辑长度字段
                 center_page: 0,
                 pageTotal: 0,
                 addVisible: false,
@@ -223,6 +233,12 @@
                     ],
                     type: [
                         { required: true, message: '请选择字段数据类型', trigger: 'change' }
+                    ],
+                    isRequire: [
+                        { required: true, message: '请选择是否必填', trigger: 'change' }
+                    ],
+                    isUnique: [
+                        { required: true, message: '请选择是否唯一', trigger: 'change' }
                     ],
                 },
             }
@@ -270,13 +286,27 @@
             submitAddField(formName){
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
+                        //将fieldForm中的isRequire、isUnique转换为整型，后端接受整型数据
+                        this.fieldForm.isRequire = parseInt(this.fieldForm.isRequire);
+                        this.fieldForm.isUnique = parseInt(this.fieldForm.isUnique);
                         this.tableObj.fields.push(this.fieldForm);
                         this.addFieldVisible = false;
-                        this.fieldForm = {name: "", type: "", default: "", remark: ""};
+                        this.fieldForm = {name: "", type: "", isRequire: '0', isUnique: '0', length: 300, default: "", remark: ""}
                     } else {
                         return false;
                     }
                 });
+            },
+            changeType(){
+                let fieldType = this.fieldForm.type;
+                //String和Int类型允许指定长度
+                if(fieldType == "Int" || fieldType == "String"){
+                    this.isEdit = false;
+                    this.fieldForm.length = 300
+                }else{
+                    this.isEdit = true;
+                    this.fieldForm.length = -1
+                }
             },
             //提交重置字段页面
             resetAddField(formName){
@@ -288,6 +318,68 @@
                     return "tb_" + originName;
                 }
                 return originName;
+            },
+            //校验数据库名称是否合法
+            checkFieldName(){
+                let formatTableName = this.formatCustomTableName(this.tableObj.tableName);
+                console.log(formatTableName)
+                getTables({tableName: formatTableName}).then((res) => {
+                        console.log(res)
+                        if(res){
+                            //校验成功
+                        }else{
+                            //校验失败
+                        }
+                    });
+            },
+            //提交前，校验数据
+            checkDataBeforeSubmit(data){
+                if(data.tableName != '' && data.fields != undefined && data.fields.length > 0 && data.dataType != ''){
+                    //继续校验字段列表
+                    for(let i=0 ; i<data.fields.length ; i++){
+                        let fieldObj = data.fields[i];
+                        //名称校验
+                        if(fieldObj.name == undefined || fieldObj.name == '' ){
+                            console.log("字段名称校验失败!")
+                            return false;
+                        }
+                        //长度校验
+                        if(fieldObj.length == undefined || fieldObj.length == '' || fieldObj.length > 300 || fieldObj.length < -1){
+                            console.log("字段长度校验失败!")
+                            return false;
+                        }
+                        //类型校验
+                        if(fieldObj.type == undefined || fieldObj.type == '' ){
+                            console.log("字段类型校验失败!")
+                            switch (fieldObj.type) {
+                                case 'String':
+                                    if(fieldObj.length < 0 || fieldObj.length > 300)
+                                        return false;
+                                    break;
+                                case 'Int':
+                                    if(fieldObj.length < 0 || fieldObj.length > 300)
+                                        return false;
+                                    break;
+                                default:
+                                    if(fieldObj.length != -1)
+                                        return false;
+                                    break;
+                            }
+                            return false;
+                        }
+                        //必填项校验
+                        if(fieldObj.isRequire == undefined || (fieldObj.isRequire != 0 && fieldObj.isRequire != 1)){
+                            console.log("字段必填项校验失败!")
+                            return false;
+                        }
+                        //唯一项校验
+                        if(fieldObj.isUnique == undefined || (fieldObj.isUnique != 0 && fieldObj.isUnique != 1)){
+                            console.log("字段唯一项校验失败!")
+                            return false;
+                        }
+                    }
+                }
+                return true;
             },
             //创建数据对象
             saveTableObj(type){
@@ -305,40 +397,33 @@
 
                 }
                 let data = this.tableObj;
-                //校验数据(预留)
+                //规范表名
+                data.tableName = this.formatCustomTableName(data.tableName);
+                //校验数据格式(预留)
                 console.log(data)
-
-                if(data.tableName != '' && data.fields != undefined && data.fields.length > 0){
-                    //判断表名是否重复
-                    data.tableName = this.formatCustomTableName(data.tableName);
-                    getTables({"tableName": data.tableName}).then((res) => {
-                        if(res.length > 0){
+                let checkResult = this.checkDataBeforeSubmit(data);
+                if(checkResult){
+                    //提交数据
+                    /*createTable(data).then((res) => {
+                        console.log(res)
+                        if(res){
+                            this.addVisible = false;
+                            this.addVisible1 = false;
                             this.$message({
-                                message: '表名已经存在，请更换！',
-                                type: 'error'
+                                message: '创建成功',
+                                type: 'success'
                             });
-                        }else{
-                            createTable(data).then((res) => {
-                                console.log(res)
-                                if(res){
-                                    this.addVisible = false;
-                                    this.addVisible1 = false;
-                                    this.$message({
-                                        message: '创建成功',
-                                        type: 'success'
-                                    });
-                                    this.getData();
-                                }
-                            });
+                            this.getData();
                         }
-                    });
+                    });*/
                 }else{
                     this.$message({
-                        message: '请完善数据对象信息',
+                        message: '提交数据校验失败,请完善数据对象信息!',
                         type: 'warning'
                     });
                 }
-                this.tableObj = {tableName: "", desc: "", createUser: "", permission:{}, fields:[]};
+                //刷新填写的历史记录
+                this.tableObj = {tableName: "", dbType: "MongoDB", desc: "", fields:[]}
             },
             //删除表对象
             removeTable(tableName){
@@ -358,8 +443,9 @@
                 let e0 = document.getElementById("top-menu-0");
                 let e1 = document.getElementById("top-menu-1");
                 let e2 = document.getElementById("top-menu-2");
+                console.log(e0)
                 this.center_page = page;
-                switch (page) {
+                /*switch (page) {
                     case 0:
                         e0.style.backgroundColor = '#303030'
                         e0.style.color = '#ffffff'
@@ -384,7 +470,7 @@
                         e1.style.backgroundColor = '#404040'
                         e1.style.color = '#B0B0B0'
                         break;
-                }
+                }*/
             },
             // 查询操作
             handleSearch() {
@@ -526,7 +612,7 @@
     .add-field-div{
         margin-top: 0px;
         width: 100%;
-        height: 450px;
+        height: 600px;
         overflow: hidden;
     }
 

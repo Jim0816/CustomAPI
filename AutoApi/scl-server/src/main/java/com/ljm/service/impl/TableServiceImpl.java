@@ -10,6 +10,8 @@ import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class TableServiceImpl implements TableService {
@@ -69,7 +72,7 @@ public class TableServiceImpl implements TableService {
     }
 
     @Override
-    public List<Map> getCollections(Table table) {
+    public List<Map> getTables(Table table) {
         QueryModel queryModel = new QueryModel(TABLE_NAME, "*", 0, 10);
         if(table != null){
             List<FilterModel> filters = new ArrayList<>();
@@ -79,8 +82,8 @@ public class TableServiceImpl implements TableService {
             }
             queryModel.setFilter(filters);
         }
-        return mongoDBUtil.query(queryModel);
-
+        List<Map> tableList = mongoDBUtil.query(queryModel);
+        return tableList;
     }
 
     @Override

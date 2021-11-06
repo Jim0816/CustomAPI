@@ -42,11 +42,6 @@ public class User extends BaseEntity implements Serializable {
     private String email;
 
     /**
-     * 登录状态
-     * */
-    private Integer state;
-
-    /**
      * 用户角色 manager、user
      * */
     private String role;

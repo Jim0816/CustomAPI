@@ -155,12 +155,14 @@ router.beforeEach((to, from, next) => {
     if (to.path === '/login') {
         next();
     } else {
-        let token = sessionStorage.getItem('Authorization');
+        /*let token = sessionStorage.getItem('Authorization');
         if (token === 'null' || token === '' || token == null) {
-            next('/login');
+            //next('/login');
+            next();
         } else {
             next();
-        }
+        }*/
+        next();
     }
 });
 
