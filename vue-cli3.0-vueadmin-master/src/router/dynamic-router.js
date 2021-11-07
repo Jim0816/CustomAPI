@@ -60,7 +60,7 @@ const dynamicRoutes = [
                 name: 'api-list',
                 component: ApiList,
                 meta: {
-                    name: '数据列表',
+                    name: '接口列表',
                     icon: 'table'
                 }
             }
