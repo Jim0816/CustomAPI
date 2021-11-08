@@ -60,6 +60,7 @@ public class ApplicationInitRunner implements ApplicationRunner {
         String[] tables = tableNames.split(",");
         for(int i=0 ; i<tables.length ; i++){
             String curTableName = tables[i];
+            log.info("====================================开始初始化表: "+curTableName);
             //判断表是否已经存在，如果存在则不需要创建
             if(!mongoDBUtil.isExistCollection(curTableName)){
                 //当前表不存在，需要创建并且登记
@@ -74,6 +75,10 @@ public class ApplicationInitRunner implements ApplicationRunner {
      * @author Jim
      */
     public boolean insertInitDataToRoleAndUser(){
+        // 1.先查询默认角色和默认用户是否存在
+
+
+
         Role role = new Role();
         role.setId(StringUtil.generateUUID()).setRoleCode(superManagerRole).setRoleName("超级管理员").setMenuPermission("*").setState(1).setIsDelete(0);
         try{

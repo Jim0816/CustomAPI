@@ -1,12 +1,14 @@
 package com.ljm.parseMongo;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.parseMongo.model.Condition;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
 import com.ljm.parseMongo.model.SortModel;
 import com.ljm.util.DateUtil;
+import com.ljm.util.JSONUtil;
 import com.ljm.util.StringUtil;
 import com.ljm.vo.Field;
 import lombok.extern.slf4j.Slf4j;
@@ -99,10 +101,7 @@ public class SqlMongoDBParser{
             case "Object":
                 try{
                     //类型校验
-                    Map<String, Object> dataMap = JSON.parseObject(data.toString()).getInnerMap();
-                    if(dataMap.size() < 1){
-                        res = false;
-                    }
+                    JSONObject jsonObject =  JSON.parseObject(data.toString());
                 }catch (Exception e){
                     //转换异常
                     res = false;
@@ -111,10 +110,7 @@ public class SqlMongoDBParser{
             case "Array":
                 try{
                     //类型校验
-                    List<Object> dataList = (List<Object>) JSON.parseObject(data.toString()).values();
-                    if(dataList.size() < 1){
-                        res = false;
-                    }
+                    JSONArray jsonArray =  JSON.parseArray(data.toString());
                 }catch (Exception e){
                     //转换异常
                     res = false;
@@ -135,10 +131,10 @@ public class SqlMongoDBParser{
      * @return
      * @author Jim
      */
-    public static Map<String,Object> checkOperateByMetaData(List<Map> metaFieldsList, Object data){
+    public static Map<String,Object> checkOperateByMetaData(List<Map<String,Object>> metaFieldsList, Object data){
         //校验结果
         Map<String,Object> checkResult = new HashMap<>();
-        JSONObject jsonObject = JSON.parseObject(data.toString());
+        JSONObject jsonObject = JSONUtil.parseBeanToJSONObject(data);
         //data数据对象
         Map<String, Object> dataMap = jsonObject.getInnerMap();
         //只考虑一级键值对
@@ -153,13 +149,20 @@ public class SqlMongoDBParser{
             return checkResult;
         }
 
-        for(Map fieldMap : metaFieldsList){
-            //字段对象
-            Field field = new Field();
+        for(Map<String,Object> fieldMap : metaFieldsList){
+            //字段对象转换
+            Field field = null;
             try{
-                BeanUtils.populate(field, fieldMap);
+                field = JSONUtil.parseMapToBean(Field.class, fieldMap);
             }catch (Exception e){
-                log.info("字段转换失败!");
+                log.info("字段转换异常!");
+                checkResult.put("result", false);
+                return checkResult;
+            }
+
+            if(field == null){
+                //filed转换不成功
+                log.info("元数据字段信息转换失败，拒绝校验!");
                 checkResult.put("result", false);
                 return checkResult;
             }
@@ -177,7 +180,7 @@ public class SqlMongoDBParser{
                 //data不存在当前字段,进行填补
                 if(field.getIsRequire() == 1){
                     //必须字段，不能缺失，拒绝操作，返回前端重新填写
-                    log.info("必填字段缺失，拒绝操作!");
+                    log.info("必填字段缺失，拒绝操作!   == 字段: "+field.getName());
                     checkResult.put("result", false);
                     return checkResult;
                 }

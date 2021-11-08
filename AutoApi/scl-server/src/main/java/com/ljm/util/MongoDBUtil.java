@@ -81,10 +81,9 @@ public class MongoDBUtil {
         String value = properties.getProperty(tableName);
 
         if(value != null && !value.equals("")){
-            JSONObject json = JSONObject.parseObject(value);
-            Table table = json.toJavaObject(Table.class);
+            Table table = JSONUtil.parseStringToBean(Table.class, value);
             //保存表结构信息(从本地配置中读取，缺少id)到sys_table中
-            table.setId(StringUtil.generateUUID());
+            table.setId(StringUtil.generateUUID()).setIsDelete(0);
             // 表：tableName 插入 表sys_table
             if(createCollection(tableName)){
                 if(SYS_TABLE_NAME.equals(tableName)){
@@ -112,7 +111,7 @@ public class MongoDBUtil {
         //1.查询当前表的结构信息
         Map tableStructInfo = specialQuery(tableName);
         if(tableStructInfo != null && tableStructInfo.size() > 0 && tableStructInfo.containsKey("fields")){
-            List<Map> metaFieldsList = (List<Map>) tableStructInfo.get("fields");
+            List<Map<String,Object>> metaFieldsList = (List<Map<String, Object>>) tableStructInfo.get("fields");
             if(metaFieldsList != null && metaFieldsList.size() > 0){
                 Map<String,Object> result = SqlMongoDBParser.checkOperateByMetaData(metaFieldsList, data);
                 boolean checkRes = (boolean) result.get("result");
@@ -157,7 +156,7 @@ public class MongoDBUtil {
         if((data = checkAndFormatDataBeforeToDB(data, tableName)) != null){
             return insertDocument(data, tableName);
         }else{
-            log.info("校验失败，数据无法操作!"+data.toString());
+            log.info("校验失败，数据无法操作!");
             return false;
         }
     }
