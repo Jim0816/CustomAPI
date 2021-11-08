@@ -28,7 +28,6 @@ public class APIProviderController {
      * @return
      * @author Jim
      * 当前策略：查询接口信息，立即解析接口，再根据解析结果去执行  （每次使用都需要解析一次接口，效率很低）
-     * 改进策略：在接口注册或者修改时，将接口解析结果存在redis中，使用接口时只需要临时查询出当前接口对应的解析结果，拿去执行即可
      */
     @PostMapping(value = "/data")
     public Res create(@RequestBody String data, String tag) {

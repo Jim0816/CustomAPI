@@ -32,4 +32,9 @@ public class BaseEntity implements Serializable {
      * */
     private Integer isDelete;
 
+    /**
+     * 是否启用（默认 1 启用）
+     * */
+    private Integer state;
+
 }

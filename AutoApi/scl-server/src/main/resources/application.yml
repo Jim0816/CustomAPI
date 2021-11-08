@@ -5,25 +5,19 @@ spring:
   data:
     mongodb:
       uri: mongodb://jim:164411@202.122.39.37:27017/jimTest
-  redis:
-    host: 127.0.0.1
-    password: 164411
-    port: 6379
-    database: 0
-    connect-timeout: 10000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-wait: 10000ms
-        max-idle: 200
-        min-idle: 5
 
-manager:
-  id: ljm@ihep.ac.cn
-  nickname: admin
-  password: 123456
-  role: manager
+# 系统自定义配置
+system:
+  load:
+    # 表的结构信息所在位置
+    path: properties/model.properties
+    # 注意先后顺序
+    tables: sys_table,sys_role,sys_user,sys_token,sys_api
+  user:
+    # 系统默认的超级管理员
+    supermanager:
+      username: admin
+      nickname: admin
+      password: 123456
+      role: supermanager
 
-other:
-  redis:
-    keepalive: 6h

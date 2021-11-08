@@ -1,9 +1,7 @@
 package com.ljm.service;
 
-import com.ljm.entity.Table;
 import com.ljm.entity.User;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public interface UserService {

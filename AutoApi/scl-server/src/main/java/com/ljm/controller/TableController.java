@@ -38,7 +38,7 @@ public class TableController {
      */
     @PostMapping(value = "/create")
     public Res create(@RequestBody Table table, AccessUser accessUser) throws IOException {
-        tableService.createTable(table.format(0, accessUser.getUuid()));
+        //tableService.createTable(table.format(0, accessUser.getUuid()));
         /*if(dataService.createCollection(table.addBaseInfo(null))){
             //表（集合）创建成功，开始创建基础接口
             return apiService.createBaseApis(table);
@@ -54,17 +54,17 @@ public class TableController {
      */
     @PostMapping(value = "/update")
     public boolean update(@RequestBody Table table, AccessUser accessUser) throws IOException {
-        table.format(1, accessUser.getUuid());
+        //table.format(1, accessUser.getUuid());
         //转换实体类型
         String jsonStr = JSONObject.toJSONString(table);
         JSONObject tableJson = JSONObject.parseObject(jsonStr);
         List<FilterModel> filters = new ArrayList<>();
-        String uuid = table.getUuid();
-        if(uuid != null && !uuid.equals("")){
+        //String uuid = table.getUuid();
+        /*if(uuid != null && !uuid.equals("")){
             FilterModel filterModel = new FilterModel("uuid", uuid, "string", "=", "and");
             filters.add(filterModel);
             return tableService.updateCollection(filters, "*", tableJson);
-        }
+        }*/
         return false;
     }
 
@@ -108,7 +108,7 @@ public class TableController {
         if(tableService.dropCollection(table.getTableName())){
             //删除当前表下的所有接口
             API api = new API();
-            api.setModel(table.getTableName());
+            //api.setModel(table.getTableName());
             return apiService.removeApi(api);
         }
         return false;

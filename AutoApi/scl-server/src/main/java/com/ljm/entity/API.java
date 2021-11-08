@@ -15,14 +15,14 @@ import java.util.Map;
 @Data
 @ToString(callSuper = true)
 @Accessors(chain = true)
-public class API extends BaseEntity implements Serializable {
+public class API implements Serializable {
 
-    private String uuid;
+    private String id;
 
     /**
      * 接口操作的数据实体(表名)
      * */
-    private String model;
+    private String tableName;
 
     /**
      * 接口名称
@@ -54,15 +54,8 @@ public class API extends BaseEntity implements Serializable {
      * */
     private Map<String,Object> require;
 
-
-
-    public void generateInfo(){
-        this.setIsDelete(0);
-        this.setCreateTime(DateUtil.getDateString());
-        this.uuid = StringUtil.generateUUID();
-        this.tag = StringUtil.generateByRandom(10);
-        StringBuilder sb = new StringBuilder("127.0.0.1:8081/service/data?tag=");
-        sb.append(this.tag);
-        this.url = sb.toString();
-    }
+    /**
+     * 是否删除 (默认0 表示不删除)
+     * */
+    private Integer isDelete;
 }

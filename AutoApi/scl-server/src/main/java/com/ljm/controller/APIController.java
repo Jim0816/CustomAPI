@@ -32,7 +32,7 @@ public class APIController {
     @PostMapping(value = "/create")
     public Res create(@RequestBody String request) throws IOException {
         API api = JSONObject.parseObject(request, API.class);
-        api.generateInfo();
+        //api.generateInfo();
         boolean result = apiService.addApi(api);
         if(result){
             return Res.ok("操作成功");

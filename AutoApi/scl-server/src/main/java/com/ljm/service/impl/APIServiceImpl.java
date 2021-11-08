@@ -8,9 +8,11 @@ import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
 import com.ljm.service.APIService;
 import com.ljm.util.MongoDBUtil;
+import com.ljm.util.StringUtil;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
@@ -24,10 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-@AllArgsConstructor
 @Service
 public class APIServiceImpl implements APIService {
+
+    @Autowired
     private MongoDBUtil mongoDBUtil;
+
+    @Value("${system.load.path}")
+    private String loadPath;
 
     private static final String TABLE_NAME ="sys_api";
 
@@ -39,7 +45,7 @@ public class APIServiceImpl implements APIService {
             return mongoDBUtil.insertDocument(api, TABLE_NAME);
         }else{
             //当前表不存在数据库中 -> 1.需要创建表2.并且将表的结构信息注册到sys_table
-            if(mongoDBUtil.registerAndCreateCollectionFromProperties(TABLE_NAME)){
+            if(mongoDBUtil.registerAndCreateCollectionFromProperties(loadPath, TABLE_NAME)){
                 //表创建成功，插入数据
                 return mongoDBUtil.insertDocument(api, TABLE_NAME);
             }else{
@@ -55,10 +61,6 @@ public class APIServiceImpl implements APIService {
         List<FilterModel> filters = new ArrayList<>();
         if(api.getTag() != null && !api.getTag().equals("")){
             FilterModel filterModel = new FilterModel("tag", api.getTag(), "string", "=", "and");
-            filters.add(filterModel);
-        }
-        if(api.getCreateUser() != null && !api.getCreateUser().equals("")){
-            FilterModel filterModel = new FilterModel("createUser", api.getCreateUser(), "string", "=", "and");
             filters.add(filterModel);
         }
         queryModel.setFilter(filters);
@@ -79,8 +81,8 @@ public class APIServiceImpl implements APIService {
     public boolean removeApi(API api) {
         //query添加过滤条件
         List<FilterModel> filters = new ArrayList<>();
-        if(api.getModel() != null && !api.getModel().equals("")){
-            FilterModel filterModel = new FilterModel("model", api.getModel(), "string", "=", "and");
+        if(api.getTableName() != null && !api.getTableName().equals("")){
+            FilterModel filterModel = new FilterModel("model", api.getTableName(), "string", "=", "and");
             filters.add(filterModel);
         }
 
@@ -112,34 +114,34 @@ public class APIServiceImpl implements APIService {
         properties.load(bf);
 
         API api = new API();
-        api.setModel(table.getTableName());
+        api.setTableName(table.getTableName());
         api.setPermission(JSONObject.parseObject(properties.getProperty("permission")).getInnerMap());
         //1.基础新增
         api.setRequire(JSONObject.parseObject(properties.getProperty("put_require")).getInnerMap());
         api.setName("基础-新增");
         api.setDesc("基础新增接口");
-        api.generateInfo();
+        api.setId(StringUtil.generateUUID());
         addApi(api);
 
         //2.基础查询
         api.setRequire(JSONObject.parseObject(properties.getProperty("get_require")).getInnerMap());
         api.setName("基础-查询");
         api.setDesc("基础查询接口,默认分页");
-        api.generateInfo();
+        api.setId(StringUtil.generateUUID());
         addApi(api);
 
         //3.基础修改
         api.setRequire(JSONObject.parseObject(properties.getProperty("post_require")).getInnerMap());
         api.setName("基础-修改");
         api.setDesc("基础修改接口");
-        api.generateInfo();
+        api.setId(StringUtil.generateUUID());
         addApi(api);
 
         //4.基础删除
         api.setRequire(JSONObject.parseObject(properties.getProperty("delete_require")).getInnerMap());
         api.setName("基础-删除");
         api.setDesc("基础删除接口");
-        api.generateInfo();
+        api.setId(StringUtil.generateUUID());
         addApi(api);
 
         return true;

@@ -8,17 +8,15 @@ import com.ljm.vo.Field;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Data
 @ToString(callSuper = true)
 @Accessors(chain = true)
-public class Table extends BaseEntity implements Serializable {
+public class Table{
 
-    private String uuid;
+    private String id;
+
     /**
      * 数据对象表名
      * */
@@ -39,51 +37,9 @@ public class Table extends BaseEntity implements Serializable {
      * */
     private List<Field> fields;
 
-
     /**
-     * 新创建的对象
-     * @param type 0表示新创建对象 ， 1表示接受修改对象
-     * @param operateUserUUID 操作用户的uuid
-     * @return
-     * @author Jim
-     */
-    public Table format(int type, String operateUserUUID){
-        if(type == 0){
-            this.uuid = StringUtil.generateUUID();
-            this.setIsDelete(0);
-            this.setCreateTime(DateUtil.getDateString());
-            this.setCreateUser(operateUserUUID);
-        }else{
-            this.setUpdateTime(DateUtil.getDateString());
-            this.setUpdateUser(operateUserUUID);
-        }
-        return this;
-    }
-
-    /**
-     * 修改的对象
-     * @param
-     * @return
-     * @author Jim
-     */
-    public Table updateTable(String userId){
-        this.setIsDelete(0);
-        this.setCreateTime(DateUtil.getDateString());
-        this.setCreateUser(userId);
-        this.setUpdateTime(null);
-        this.setUpdateUser("");
-        return this;
-    }
-
-    /**
-     * 格式化table对象数据
-     * @param
-     * @return
-     * @author Jim
-     */
-    public Table formatTableObj(JSONObject obj){
-        Table table = obj.toJavaObject(Table.class);
-        return table;
-    }
+     * 是否删除 (默认0 表示不删除)
+     * */
+    private Integer isDelete;
 
 }

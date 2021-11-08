@@ -8,7 +8,9 @@ import com.ljm.parseMongo.model.QueryModel;
 import com.ljm.parseMongo.model.SortModel;
 import com.ljm.util.DateUtil;
 import com.ljm.util.StringUtil;
+import com.ljm.vo.Field;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -23,35 +25,189 @@ import java.util.*;
 public class SqlMongoDBParser{
 
     /**
+     * 根据字段要求返回合法值 (数据中不存在当前字段)
+     * @return 字段值
+     * @author Jim
+     */
+    public static Object getValueByFieldInfo(Field field){
+        switch (field.getType()){
+            case "Array":
+                return field.getDefaultVal() == null ? new ArrayList<>() : field.getDefaultVal();
+            case "Object":
+                return field.getDefaultVal() == null ? new HashMap<>() : field.getDefaultVal();
+            default:
+                return field.getDefaultVal() == null ? "" : field.getDefaultVal();
+        }
+    }
+
+    /**
+     * 根据字段要求校验字段数据 (数据中存在当前字段)
+     * @return 字段值
+     * @author Jim
+     */
+    public static boolean checkFieldDataByFieldInfo(Field field, Object data){
+        boolean res = true;
+        switch (field.getType()){
+            case "String":
+                try{
+                    //类型校验
+                    String str = String.valueOf(data);
+                    //长度校验
+                    if(str.length() > field.getLength()){
+                        res = false;
+                    }
+                }catch (Exception e){
+                    //转换异常
+                    res = false;
+                }
+                return res;
+            case "Int":
+                try{
+                    //类型校验 ""转换失败
+                    Integer val = -1; //-1代表整型中null
+                    String str = data.toString();
+                    if(!str.equals("")){
+                        val = Integer.valueOf(str);
+                    }
+                    //长度校验
+                    if((val + "").length() > field.getLength()){
+                        res = false;
+                    }
+                }catch (Exception e){
+                    //转换异常
+                    res = false;
+                }
+                return res;
+            case "Float":
+                try{
+                    //类型校验
+                    Float val = (Float) data;
+                }catch (Exception e){
+                    //转换异常
+                    res = false;
+                }
+                return res;
+            case "Double":
+                try{
+                    //类型校验
+                    Double val = (Double) data;
+                }catch (Exception e){
+                    //转换异常
+                    res = false;
+                }
+                return res;
+            case "Object":
+                try{
+                    //类型校验
+                    Map<String, Object> dataMap = JSON.parseObject(data.toString()).getInnerMap();
+                    if(dataMap.size() < 1){
+                        res = false;
+                    }
+                }catch (Exception e){
+                    //转换异常
+                    res = false;
+                }
+                return res;
+            case "Array":
+                try{
+                    //类型校验
+                    List<Object> dataList = (List<Object>) JSON.parseObject(data.toString()).values();
+                    if(dataList.size() < 1){
+                        res = false;
+                    }
+                }catch (Exception e){
+                    //转换异常
+                    res = false;
+                }
+                return res;
+            default:
+                return true;
+        }
+    }
+
+    /**
      * 根据表结构校验数据是否合理   如当前插入的数据字段不满足当前版本(最新)的表结构信息 数据中有字段，但是表结构中没有描述当前字段类型
-     * @param tableMetaInfo 表示集合（表）的结构信息 data表示将要添加或者修改的数据
+     * 校验策略：以元数据为标准，校验数据。
+     * ①如果数据存在冗余字段，则将冗余字段入库
+     * ②如果数据存在字段缺失，则按照元数据规则补齐
+     * ③如果字段不缺失，则按照元数据进行类型、格式校验
+     * @param metaFieldsList 表示集合（表）的字段结构信息 data表示将要添加或者修改的数据
      * @return
      * @author Jim
      */
-    public static boolean checkOperateByMetaData(Map tableMetaInfo, Object data){
-        List<Map> fieldsList = (List<Map>) tableMetaInfo.get("fields");
+    public static Map<String,Object> checkOperateByMetaData(List<Map> metaFieldsList, Object data){
+        //校验结果
+        Map<String,Object> checkResult = new HashMap<>();
         JSONObject jsonObject = JSON.parseObject(data.toString());
+        //data数据对象
         Map<String, Object> dataMap = jsonObject.getInnerMap();
+        //只考虑一级键值对
+        int dataFieldsCount = dataMap.size();
+        //记录已经校验过的数据
+        List<String> checkedFields = new ArrayList<>();
 
-        for(String fieldName : dataMap.keySet()){
-            // 还可以添加数据类型的判断，后期补充
-            boolean curFieldIsFind = false;
-            for(Map fieldMap : fieldsList){
-                String tableStructFieldName = fieldMap.get("name").toString();
-                if(tableStructFieldName.equals(fieldName)){
-                    //找到当前字段
-                    curFieldIsFind = true;
-                    break;
+        if(dataFieldsCount < 1){
+            //当前data中没有数据字段, 不需要进行校验了，直接退出
+            log.info("数据中没有任何字段，拒绝校验!");
+            checkResult.put("result", false);
+            return checkResult;
+        }
+
+        for(Map fieldMap : metaFieldsList){
+            //字段对象
+            Field field = new Field();
+            try{
+                BeanUtils.populate(field, fieldMap);
+            }catch (Exception e){
+                log.info("字段转换失败!");
+                checkResult.put("result", false);
+                return checkResult;
+            }
+
+            //查看data中是否有这个字段
+            if(dataMap.containsKey(field.getName())){
+                //data存在当前字段, 进行数据类型校验
+                if(!checkFieldDataByFieldInfo(field, dataMap.get(field.getName()))){
+                    //校验失败
+                    log.info("字段校验失败，拒绝操作! == 字段："+field.getName());
+                    checkResult.put("result", false);
+                    return checkResult;
+                }
+            }else{
+                //data不存在当前字段,进行填补
+                if(field.getIsRequire() == 1){
+                    //必须字段，不能缺失，拒绝操作，返回前端重新填写
+                    log.info("必填字段缺失，拒绝操作!");
+                    checkResult.put("result", false);
+                    return checkResult;
+                }
+                //选填字段，自动补齐
+                dataMap.put(field.getName(), getValueByFieldInfo(field));
+            }
+            checkedFields.add(field.getName());
+        }
+
+        //data中字段出现冗余，元数据中不存在该字段  策略：冗余字段也存入数据库
+        if(checkedFields.size() < dataFieldsCount){
+            for(String key : dataMap.keySet()){
+                boolean isFind = false;
+                for(String checkedField : checkedFields){
+                   if(checkedField.equals(key)){
+                       //字段匹配
+                       isFind = true;
+                       break;
+                   }
+                }
+                //没有匹配
+                if(!isFind){
+                    log.info("接收到的数据中存在冗余字段: "+key);
                 }
             }
-
-            if(!curFieldIsFind){
-                //表结构中没有找到当前字段
-                log.info("字段 "+fieldName + "在表结构中已经不存在!!!");
-                return false;
-            }
         }
-        return true;
+        //通过
+        checkResult.put("result", true);
+        checkResult.put("data", dataMap);
+        return checkResult;
     }
 
     /**

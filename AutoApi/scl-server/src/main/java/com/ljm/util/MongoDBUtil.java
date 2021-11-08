@@ -27,6 +27,7 @@ import java.util.*;
 public class MongoDBUtil {
 
     private MongoTemplate mongoTemplate;
+    private static final String SYS_TABLE_NAME = "sys_table";
 
     /**
      * 判断集合是否存在mongodb
@@ -72,25 +73,26 @@ public class MongoDBUtil {
      * @return
      * @author Jim
      */
-    public boolean registerAndCreateCollectionFromProperties(String tableName) throws IOException {
-        ClassPathResource classPathResource = new ClassPathResource("properties/model.properties");
+    public boolean registerAndCreateCollectionFromProperties(String loadPath, String tableName) throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource(loadPath);
         Properties properties=new Properties();
         BufferedReader bf = new BufferedReader(new InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
         properties.load(bf);
         String value = properties.getProperty(tableName);
+
         if(value != null && !value.equals("")){
             JSONObject json = JSONObject.parseObject(value);
-            Table table = new Table();
-            table.formatTableObj(json);
+            Table table = json.toJavaObject(Table.class);
+            //保存表结构信息(从本地配置中读取，缺少id)到sys_table中
+            table.setId(StringUtil.generateUUID());
+            // 表：tableName 插入 表sys_table
             if(createCollection(tableName)){
-                //保存表结构信息(从本地配置中读取，缺少uuid)到sys_table中
-                if("sys_table".equals(tableName)){
-                    //sys_table表自身结构信息最初不存在，不需要校验 (特殊情况) 直接格式化数据入库
-                    json = (JSONObject) SqlMongoDBParser.formatDateByMetaData(json, json);
-                    return insertDocument(json,"sys_table");
+                if(SYS_TABLE_NAME.equals(tableName)){
+                    //sys_table自身结构信息插入，不进行校验(它是最初表，没有校验模板)
+                    return insertDocument(table,SYS_TABLE_NAME);
                 }else{
                     //而其他表结构信息要存入sys_table表，需要根据sys_table表结构信息校验
-                    return insertDocumentNeedCheckData(json,"sys_table");
+                    return insertDocumentNeedCheckData(table,SYS_TABLE_NAME);
                 }
             }
         }else{
@@ -107,17 +109,19 @@ public class MongoDBUtil {
      * @author Jim
      */
     public Object checkAndFormatDataBeforeToDB(Object data, String tableName){
-        log.info(data.toString());
-        log.info(tableName);
         //1.查询当前表的结构信息
         Map tableStructInfo = specialQuery(tableName);
-        if(tableStructInfo != null){
-            if(!SqlMongoDBParser.checkOperateByMetaData(tableStructInfo, data)){
-                log.info("数据校验失败，数据无法操作表: "+tableName);
-                return null;
+        if(tableStructInfo != null && tableStructInfo.size() > 0 && tableStructInfo.containsKey("fields")){
+            List<Map> metaFieldsList = (List<Map>) tableStructInfo.get("fields");
+            if(metaFieldsList != null && metaFieldsList.size() > 0){
+                Map<String,Object> result = SqlMongoDBParser.checkOperateByMetaData(metaFieldsList, data);
+                boolean checkRes = (boolean) result.get("result");
+                if(!checkRes){
+                    log.info("数据校验失败，数据无法操作表: "+tableName);
+                    return null;
+                }
+                return result.get("data");
             }
-            //2.校验成功，继续格式化数据，准备入库
-            return SqlMongoDBParser.formatDateByMetaData(tableStructInfo, data);
         }
         return null;
     }

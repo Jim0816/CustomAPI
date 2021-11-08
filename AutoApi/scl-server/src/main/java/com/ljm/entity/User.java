@@ -12,14 +12,14 @@ import java.util.Date;
 @Data
 @ToString(callSuper = true)
 @Accessors(chain = true)
-public class User extends BaseEntity implements Serializable {
+public class User implements Serializable {
 
-    private String uuid;
+    private String id;
 
     /**
      * 用户账号 (唯一)
      * */
-    private String userId;
+    private String username;
 
     /**
      * 用户名
@@ -42,27 +42,23 @@ public class User extends BaseEntity implements Serializable {
     private String email;
 
     /**
-     * 用户角色 manager、user
+     * 用户角色
      * */
-    private String role;
-    public User(){
-    }
+    private String roleId;
 
-    public User(String userId, String nickname, String password, String salt, String role) {
-        this.uuid = StringUtil.generateUUID();
-        this.userId = userId;
-        this.nickname = nickname;
-        this.password = password;
-        this.salt = salt;
-        this.role = role;
-        setBaseInfo();
-    }
+    /**
+     * 最后一次登录时间
+     * */
+    private String lastLoginTime;
 
-    private void setBaseInfo(){
-        this.setCreateTime(DateUtil.getDateString());
-        this.setCreateUser("000000");
-        this.setUpdateTime(DateUtil.getDateString());
-        this.setUpdateUser("000000");
-        this.setIsDelete(0);
-    }
+    /**
+     * 是否删除 (默认0 表示不删除)
+     * */
+    private Integer isDelete;
+
+    /**
+     * 是否启用 (默认1 表示启用)
+     * */
+    private Integer state;
+
 }

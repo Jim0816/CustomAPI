@@ -1,6 +1,6 @@
 package com.ljm.config;
 
-import com.alibaba.fastjson.JSONObject;
+import com.ljm.entity.Role;
 import com.ljm.entity.User;
 import com.ljm.util.MD5Util;
 import com.ljm.util.MongoDBUtil;
@@ -25,26 +25,30 @@ public class ApplicationInitRunner implements ApplicationRunner {
     @Autowired
     private MongoDBUtil mongoDBUtil;
 
-    @Value("${manager.id}")
-    private String managerId;
+    @Value("${system.load.path}")
+    private String loadPath;
 
-    @Value("${manager.nickname}")
-    private String managerUserName;
+    @Value("${system.load.tables}")
+    private String loadTables;
 
-    @Value("${manager.password}")
-    private String managerPassword;
+    @Value("${system.user.supermanager.username}")
+    private String superManagerUsername;
 
-    @Value("${manager.role}")
-    private String managerRole;
+    @Value("${system.user.supermanager.nickname}")
+    private String superManagerNickname;
+
+    @Value("${system.user.supermanager.password}")
+    private String superManagerPassword;
+
+    @Value("${system.user.supermanager.role}")
+    private String superManagerRole;
     /**
      * springboot启动成功后，先加载系统配置到数据库
      * @author Jim
      */
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        //创建并且登记所有系统表
-        String initTableNames = "sys_table,sys_user,sys_api";
-        loadSystemTable(initTableNames);
+        loadSystemTable(loadPath, loadTables);
     }
 
 
@@ -52,25 +56,43 @@ public class ApplicationInitRunner implements ApplicationRunner {
      * springboot启动成功后，先加载系统级别的表到数据库
      * @author Jim
      */
-    public void loadSystemTable(String tableNames) throws IOException {
+    public void loadSystemTable(String loadPath, String tableNames) throws IOException {
         String[] tables = tableNames.split(",");
         for(int i=0 ; i<tables.length ; i++){
             String curTableName = tables[i];
             //判断表是否已经存在，如果存在则不需要创建
             if(!mongoDBUtil.isExistCollection(curTableName)){
                 //当前表不存在，需要创建并且登记
-                mongoDBUtil.registerAndCreateCollectionFromProperties(curTableName);
-                //新建的用户信息表需要把管理员账号存进去
-                if("sys_user".equals(curTableName)){
-                    String salt = StringUtil.generateByRandom(6);
-                    String password = MD5Util.encryptFromWebSecretToDB(MD5Util.encryptFromUserToPass(managerPassword),salt);
-                    User user = new User(managerId, managerUserName, password, salt, managerRole);
-                    String jsonStr = JSONObject.toJSONString(user);
-                    JSONObject jsonObject = JSONObject.parseObject(jsonStr);
-                    mongoDBUtil.insertDocumentNeedCheckData(jsonObject, "sys_user");
-                }
+                mongoDBUtil.registerAndCreateCollectionFromProperties(loadPath, curTableName);
             }
         }
+        insertInitDataToRoleAndUser();
+    }
+
+    /**
+     * sys_role、sys_user 创建成功后，需要插入初始数据
+     * @author Jim
+     */
+    public boolean insertInitDataToRoleAndUser(){
+        Role role = new Role();
+        role.setId(StringUtil.generateUUID()).setRoleCode(superManagerRole).setRoleName("超级管理员").setMenuPermission("*").setState(1).setIsDelete(0);
+        try{
+            if(mongoDBUtil.insertDocumentNeedCheckData(role,"sys_role")){
+                User user = new User();
+                String salt = StringUtil.generateByRandom(6);
+                //仿照：前端传递过来的密文
+                String webToPlatPassword = MD5Util.encryptFromUserToPass(superManagerPassword);
+                //准备存入数据库的密文
+                String platToDBPassword = MD5Util.encryptFromWebSecretToDB(webToPlatPassword,salt);
+                user.setId(StringUtil.generateUUID()).setUsername(superManagerUsername).setNickname(superManagerNickname).setPassword(platToDBPassword)
+                        .setRoleId(role.getId()).setSalt(StringUtil.generateByRandom(6)).setState(1).setIsDelete(0);
+                mongoDBUtil.insertDocumentNeedCheckData(user,"sys_user");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
 

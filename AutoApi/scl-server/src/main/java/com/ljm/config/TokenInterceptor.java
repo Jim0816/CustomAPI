@@ -1,32 +1,26 @@
 package com.ljm.config;
 
-import com.ljm.entity.User;
 import com.ljm.service.UserService;
 import com.ljm.util.TokenUtil;
-import com.ljm.util.TokenUtilTest;
-import com.ljm.vo.AccessUser;
 import com.ljm.vo.Res;
 import com.ljm.vo.ResCode;
 import com.ljm.vo.TokenState;
 import com.nimbusds.jose.shaded.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.HashMap;
+
 import java.util.Map;
 
 @Slf4j
 @Component
 public class TokenInterceptor implements HandlerInterceptor {
-    @Autowired
-    private RedisTemplate redisTemplate;
+
 
     @Autowired
     private UserService userService;
@@ -70,7 +64,7 @@ public class TokenInterceptor implements HandlerInterceptor {
             response.getWriter().append(Res.failed(ResCode.TOKEN_ERROR_EXPIRE).toString());
         }else{
             //token合法性校验成功，还需要判断token是否存在（用户是否离线）
-            String redisToken = redisTemplate.opsForValue().get("userid:" + userId).toString();
+            String redisToken = "";
             //redis中token已被删除(redis中key过期自动删除 | 用户下线)，或者当前用户对应token已被修改（其他地方登录,被迫下线）
             if(redisToken == null || !redisToken.equals(token)){
                 //用户已经下线，token被清除

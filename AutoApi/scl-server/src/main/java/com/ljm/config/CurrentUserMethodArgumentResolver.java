@@ -7,7 +7,6 @@ import com.nimbusds.jose.shaded.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -24,8 +23,6 @@ import java.util.Map;
 @Slf4j
 @Component
 public class CurrentUserMethodArgumentResolver implements HandlerMethodArgumentResolver {
-    @Autowired
-    private RedisTemplate redisTemplate;
 
     @Autowired
     private UserService userService;
@@ -48,7 +45,7 @@ public class CurrentUserMethodArgumentResolver implements HandlerMethodArgumentR
         JSONObject data = (JSONObject) checkResult.get("data");
         String userId =  data.get("userId") == null ? null : data.get("userId").toString();
         User user = new User();
-        user = userService.get(user.setUserId(userId));
+        //user = userService.get(user.setUserId(userId));
         AccessUser accessUser = new AccessUser();
         return  accessUser.transform(user);
     }
