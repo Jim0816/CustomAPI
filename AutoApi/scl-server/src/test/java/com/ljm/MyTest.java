@@ -2,7 +2,9 @@ package com.ljm;
 
 
 
+import com.ljm.entity.User;
 import com.ljm.util.MD5Util;
+import com.ljm.util.MongoDBUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -20,14 +22,14 @@ import java.util.Date;
 @SpringBootTest(classes = Application.class)
 public class MyTest {
     @Autowired
-    private MongoTemplate mongoTemplate;
-    //private MongoDBUtil mongoDBUtil;
+    //private MongoTemplate mongoTemplate;
+    private MongoDBUtil mongoDBUtil;
 
     @Test
     public void testMethod() {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-        System.out.println(df.format(new Date()));// new Date()为获取当前系统时间
-
+        User user = new User();
+        user.setUsername("admin");
+        mongoDBUtil.query(user, "sys_user", 0, 10);
 
     }
 

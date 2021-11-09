@@ -25,9 +25,6 @@ public class ApplicationInitRunner implements ApplicationRunner {
     @Autowired
     private MongoDBUtil mongoDBUtil;
 
-    @Value("${system.load.path}")
-    private String loadPath;
-
     @Value("${system.load.tables}")
     private String loadTables;
 
@@ -48,7 +45,7 @@ public class ApplicationInitRunner implements ApplicationRunner {
      */
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        loadSystemTable(loadPath, loadTables);
+        loadSystemTable(loadTables);
     }
 
 
@@ -56,18 +53,18 @@ public class ApplicationInitRunner implements ApplicationRunner {
      * springboot启动成功后，先加载系统级别的表到数据库
      * @author Jim
      */
-    public void loadSystemTable(String loadPath, String tableNames) throws IOException {
+    public void loadSystemTable(String tableNames) throws IOException {
         String[] tables = tableNames.split(",");
         for(int i=0 ; i<tables.length ; i++){
             String curTableName = tables[i];
-            log.info("====================================开始初始化表: "+curTableName);
+            log.info("=================开始初始化表: "+curTableName);
             //判断表是否已经存在，如果存在则不需要创建
             if(!mongoDBUtil.isExistCollection(curTableName)){
                 //当前表不存在，需要创建并且登记
-                mongoDBUtil.registerAndCreateCollectionFromProperties(loadPath, curTableName);
+                mongoDBUtil.registerAndCreateCollectionFromProperties(curTableName);
             }
         }
-        insertInitDataToRoleAndUser();
+        //insertInitDataToRoleAndUser();
     }
 
     /**

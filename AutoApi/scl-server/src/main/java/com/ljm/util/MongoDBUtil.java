@@ -2,14 +2,18 @@ package com.ljm.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.Table;
+import com.ljm.entity.User;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
+import com.ljm.vo.BeanField;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -22,11 +26,14 @@ import java.io.InputStreamReader;
 import java.util.*;
 
 @Slf4j
-@AllArgsConstructor
 @Component
 public class MongoDBUtil {
-
+    @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${system.load.path}")
+    private String loadPath;
+
     private static final String SYS_TABLE_NAME = "sys_table";
 
     /**
@@ -73,13 +80,16 @@ public class MongoDBUtil {
      * @return
      * @author Jim
      */
-    public boolean registerAndCreateCollectionFromProperties(String loadPath, String tableName) throws IOException {
+    public boolean registerAndCreateCollectionFromProperties(String tableName){
         ClassPathResource classPathResource = new ClassPathResource(loadPath);
         Properties properties=new Properties();
-        BufferedReader bf = new BufferedReader(new InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
-        properties.load(bf);
+        try{
+            BufferedReader bf = new BufferedReader(new InputStreamReader(classPathResource.getInputStream(),"UTF-8"));//解决读取properties文件中产生中文乱码的问题
+            properties.load(bf);
+        }catch (Exception e){
+            log.info("配置信息读取失败");
+        }
         String value = properties.getProperty(tableName);
-
         if(value != null && !value.equals("")){
             Table table = JSONUtil.parseStringToBean(Table.class, value);
             //保存表结构信息(从本地配置中读取，缺少id)到sys_table中
@@ -199,6 +209,36 @@ public class MongoDBUtil {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * 查询文档（单表查询文档） 泛型查询
+     * @param
+     * @return
+     * @author Jim
+     */
+    public <T> List<T> query(T bean, String tableName, int pageNow, int pageSize){
+        Map<String, BeanField> notNullKVMap = BeanUtil.getNotNullPropertyNames(bean);
+        QueryModel queryModel = new QueryModel(tableName, "*", pageNow, pageSize);
+        List<FilterModel> filters = new ArrayList<>();
+        for (String key : notNullKVMap.keySet()) {
+            BeanField beanField = notNullKVMap.get(key);
+            //当前均使用 并操作(后期优化)
+            FilterModel filterModel = new FilterModel(key, beanField.getValue().toString(), beanField.getType(), "=", "and");
+            filters.add(filterModel);
+        }
+        queryModel.setFilter(filters);
+        List<Map> res = query(queryModel);
+        if(res == null || res.size() == 0){
+            return null;
+        }
+        //类型转换
+        List<T> roleList = new LinkedList<>();
+        for (Map map : res) {
+            T t = (T) JSONUtil.parseMapToBean(bean.getClass(), map);
+            roleList.add(t);
+        }
+        return roleList;
     }
 
     /**
