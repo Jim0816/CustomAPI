@@ -8,34 +8,42 @@ import lombok.ToString;
  * */
 public enum ResCode {
     //通用
-    SUCCESS(200, "SUCCESS"),
-    ERROR(500, "服务器异常"),
-    OTHER_ERROR(500100, "其他未知异常，错误信息由用户自定义"),
+    SUCCESS(200, "SUCCESS", 1),
+    ERROR(500, "服务器异常", 0),
+    OTHER_ERROR(500100, "其他未知异常，错误信息由用户自定义", 0),
 
     //登录模块 5002xx
-    LOGIN_ERROR(500201, "密码错误"),
-    TOKEN_ERROR_INVALID(500202, "token不存在或者token格式有误"),
-    TOKEN_ERROR_EXPIRE(500203, "token已经过期"),
-    TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理");
+    LOGIN_SUCCESS(500200, "登录成功", 1),
+    LOGIN_ERROR_1(500201, "系统不存在该账号", 0),
+    LOGIN_ERROR_2(500202, "密码错误", 0),
+    LOGIN_ERROR_3(500203, "接受登录用户校验数据失败", 0),
+    LOGIN_ERROR_4(500204, "用户校验成功，服务器异常导致token无效", 0),
+    TOKEN_ERROR_INVALID(500202, "token不存在或者token格式有误", 0),
+    TOKEN_ERROR_EXPIRE(500203, "token已经过期", 0),
+    TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理", 0);
+
     private final long code;
     private final String msg;
+    private final Integer result;
 
 
 
-    private ResCode(final long code, final String msg) {
+    ResCode(final long code, final String msg, final Integer result) {
         this.code = code;
         this.msg = msg;
+        this.result = result;
     }
 
     public long getCode() {
-        return this.code;
+        return code;
     }
 
     public String getMsg() {
-        return this.msg;
+        return msg;
     }
 
-    public String toString() {
-        return String.format(" ErrorCode:{code=%s, msg=%s} ", this.code, this.msg);
+    public Integer getResult() {
+        return result;
     }
+
 }

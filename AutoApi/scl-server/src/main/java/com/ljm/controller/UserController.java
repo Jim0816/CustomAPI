@@ -30,7 +30,7 @@ public class UserController {
      * @author Jim
      */
     @PostMapping(value = "/login")
-    public Map<String, Object> login(@RequestBody User user){
+    public Res login(@RequestBody User user){
         return userService.login(user);
     }
 
@@ -43,7 +43,8 @@ public class UserController {
     @PostMapping(value = "/logout")
     public Res logout(String token, HttpServletRequest request){
         User accessUser = (User) request.getAttribute("user");
-        return Res.data(userService.logout(token, accessUser));
+        //return Res.data(userService.logout(token, accessUser));
+        return Res.ok("");
     }
 
 }

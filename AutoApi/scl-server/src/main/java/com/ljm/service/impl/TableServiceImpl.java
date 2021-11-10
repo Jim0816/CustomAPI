@@ -29,11 +29,6 @@ public class TableServiceImpl implements TableService {
 
 
     @Override
-    public boolean tableIsExist(Table table) {
-        return false;
-    }
-
-    @Override
     public boolean createTable(Table table) {
         String tableName = table.getTableName();
         //当前表已经存在 || 当前表不存在需要新建

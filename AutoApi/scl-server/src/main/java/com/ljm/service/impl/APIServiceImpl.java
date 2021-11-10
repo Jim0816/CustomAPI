@@ -45,7 +45,7 @@ public class APIServiceImpl implements APIService {
             return mongoDBUtil.insertDocument(api, TABLE_NAME);
         }else{
             //当前表不存在数据库中 -> 1.需要创建表2.并且将表的结构信息注册到sys_table
-            if(mongoDBUtil.registerAndCreateCollectionFromProperties(loadPath, TABLE_NAME)){
+            if(mongoDBUtil.registerAndCreateCollectionFromProperties(TABLE_NAME)){
                 //表创建成功，插入数据
                 return mongoDBUtil.insertDocument(api, TABLE_NAME);
             }else{

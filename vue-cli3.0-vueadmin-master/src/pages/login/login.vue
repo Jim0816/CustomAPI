@@ -27,7 +27,10 @@
 </template>
 
 <script>
+
+import md5 from 'js-md5'
 import { login } from '@/api/permission'
+
 export default {
     data() {
         const validateUsername = (rule, value, callback) => {
@@ -75,8 +78,14 @@ export default {
         },
         async login() {
             try {
-                let data = await login(this.loginForm)
-                let token = data.token
+                let salt = "1a2b3c"
+                let loginUser = {
+                    username: this.loginForm.username,
+                    password: md5(salt.charAt(0) + this.loginForm.password + salt.charAt(1) + salt.charAt(salt.length-1)) //后端盐长度取6  取出3粒盐
+                }
+                let res = await login(loginUser)
+                let token = res.data.token
+                console.log(token)
                 this.$store.commit('LOGIN_IN', token)
                 this.$router.replace('/')
             } catch (e) {

@@ -1,9 +1,5 @@
 package com.ljm.entity;
 
-import com.alibaba.fastjson.JSONObject;
-import com.ljm.entity.common.BaseEntity;
-import com.ljm.util.DateUtil;
-import com.ljm.util.StringUtil;
 import com.ljm.vo.Field;
 import lombok.Data;
 import lombok.ToString;

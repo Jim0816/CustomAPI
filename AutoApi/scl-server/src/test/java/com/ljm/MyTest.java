@@ -27,10 +27,8 @@ public class MyTest {
 
     @Test
     public void testMethod() {
-        User user = new User();
-        user.setUsername("admin");
-        mongoDBUtil.query(user, "sys_user", 0, 10);
-
+        String a = "Bearer eyJ0eXAiOiJKV";
+        System.out.println(a.substring(7, a.length()));
     }
 
 }

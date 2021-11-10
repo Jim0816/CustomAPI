@@ -4,6 +4,7 @@ import com.ljm.entity.Role;
 
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
+import com.ljm.service.CommonService;
 import com.ljm.service.RoleService;
 import com.ljm.util.BeanUtil;
 import com.ljm.util.JSONUtil;
@@ -22,30 +23,39 @@ import java.util.*;
 public class RoleServiceImpl implements RoleService {
 
     private MongoDBUtil mongoDBUtil;
+    private CommonService commonService;
     private static final String TABLE_NAME ="sys_role";
 
 
     @Override
     public boolean add(Role role) {
-        //当前表已经存在 || 当前表不存在需要新建并且注册,将当前新建的表记录插入sys_table表存储  (登记新建立表的结构信息到sys_table)
-        if(mongoDBUtil.isExistCollection(TABLE_NAME) || mongoDBUtil.registerAndCreateCollectionFromProperties(TABLE_NAME)){
-            //表已经存在
-            return mongoDBUtil.insertDocumentNeedCheckData(role,TABLE_NAME);
+        if(commonService.tableIsExist(TABLE_NAME)){
+            //表存在 -> 判断唯一键是否已经存在
+            Role queryRole = new Role();
+            //构建查询条件
+            queryRole.setRoleCode(role.getRoleCode()).setRoleName(role.getRoleName());
+            if(get(queryRole) == null){
+                //唯一字段不存在存在别的数据中 -> 允许插入
+                return mongoDBUtil.insertDocumentNeedCheckData(role,TABLE_NAME);
+            }else{
+                //插入数据的前提必须表的元数据信息存在，才能满足后期数据插入的一系列校验、格式化操作
+                log.info("表："+TABLE_NAME + "中存在当前数据,拒绝重复插入!");
+                return false;
+            }
         }else{
             //插入数据的前提必须表的元数据信息存在，才能满足后期数据插入的一系列校验、格式化操作
-            log.info("表："+TABLE_NAME + "不存在，或者创建失败，导致无法插入数据！");
+            log.info("表："+TABLE_NAME + "不存在,拒绝插入数据！");
             return false;
         }
     }
 
     @Override
-    public boolean addWithCheck(Role role, String uniqueFields) {
+    public boolean addWithCheck(Role role, Set<String> uniqueFields) {
         // 1.先查询是否有数据出现过这些唯一字段
-        String[] fields = uniqueFields.split(",");
         Map<String, BeanField> notNullKVMap = BeanUtil.getNotNullPropertyNames(role);
         QueryModel queryModel = new QueryModel(TABLE_NAME, "*", 0, 10);
         List<FilterModel> filters = new ArrayList<>();
-        for(String key : fields){
+        for(String key : uniqueFields){
             BeanField beanField = null;
             if(notNullKVMap.containsKey(key) && (beanField = notNullKVMap.get(notNullKVMap)) != null){
                 //当前均使用 并操作(后期优化)
@@ -92,11 +102,11 @@ public class RoleServiceImpl implements RoleService {
                 //查询成功
                 return res.get(0);
             }else if(res.size() > 1){
-                log.info("查询到多个数据，查询失败！");
+                log.info("查询到多个数据！");
                 return null;
             }
         }
-        log.info("没有查询到任何数据，查询失败！");
+        log.info("没有查询到任何数据！");
         return null;
     }
 
@@ -106,7 +116,7 @@ public class RoleServiceImpl implements RoleService {
         if(res != null && res.size() > 0){
             return res;
         }
-        log.info("没有查询到任何数据，查询失败！");
+        log.info("没有查询到任何数据！");
         return null;
     }
 
@@ -116,7 +126,7 @@ public class RoleServiceImpl implements RoleService {
         if(res != null && res.size() > 0){
             return res;
         }
-        log.info("没有查询到任何数据，查询失败！");
+        log.info("没有查询到任何数据！");
         return null;
     }
 

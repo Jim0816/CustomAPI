@@ -10,13 +10,6 @@ import java.util.Set;
 
 public interface TableService {
 
-    /**
-     * 判断表是否存在 （表和表的描述信息要同时存在，才能说明表存在）
-     * @param table
-     * @return
-     * @author Jim
-     */
-    boolean tableIsExist(Table table);
 
     /**
      * 创建集合 ①创建空表 ②存储该表的描述信息

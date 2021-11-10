@@ -11,7 +11,7 @@ function resolve(dir) {
     return path.join(__dirname, dir)
 }
 const proxyTargetMap = {
-    prod: 'https://xxx.xxx.com/',
+    prod: 'http://127.0.0.1:8081',
     randy: 'http://47.105.71.81:3306',
     peter: 'http://192.168.11.178:3001'
 }

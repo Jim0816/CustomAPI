@@ -14,7 +14,7 @@ public interface RoleService {
      * @return
      * @author Jim
      */
-    boolean add(Role role) throws IOException;
+    boolean add(Role role);
 
     /**
      * 带检查的插入（先检查是否有数据中出现过规定字段，要保持字段唯一性）
@@ -22,7 +22,7 @@ public interface RoleService {
      * @return
      * @author Jim
      */
-    boolean addWithCheck(Role role, String uniqueFields);
+    boolean addWithCheck(Role role, Set<String> uniqueFields);
 
     Role get(Role role);
 

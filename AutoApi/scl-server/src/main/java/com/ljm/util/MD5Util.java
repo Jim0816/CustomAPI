@@ -5,6 +5,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 public class MD5Util {
 
+
+    public static void main(String[] args) {
+        System.out.println(encryptFromUserToPass("123456"));
+    }
     public static String md5(String str){
         return DigestUtils.md5Hex(str);
     }

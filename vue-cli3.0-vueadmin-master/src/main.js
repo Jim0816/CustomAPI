@@ -46,7 +46,7 @@ router.beforeEach((to, from, next) => {
             next({ path: '/login' })
         }
     } else {
-        if (!store.state.permission.permissionList) {
+        /*if (!store.state.permission.permissionList) {
             store.dispatch('permission/FETCH_PERMISSION').then(() => {
                 next({ path: to.path })
             })
@@ -56,7 +56,8 @@ router.beforeEach((to, from, next) => {
             } else {
                 next(from.fullPath)
             }
-        }
+        }*/
+        next({ path: to.path })
     }
 })
 

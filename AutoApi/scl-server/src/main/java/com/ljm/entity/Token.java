@@ -11,8 +11,9 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class Token implements Serializable {
 
+    private String id;
+
     private String uid;
 
     private String token;
-
 }

@@ -1,5 +1,6 @@
 package com.ljm.config;
 
+import com.ljm.entity.Token;
 import com.ljm.service.UserService;
 import com.ljm.util.TokenUtil;
 import com.ljm.vo.Res;
@@ -45,33 +46,33 @@ public class TokenInterceptor implements HandlerInterceptor {
         //token检验后的结果状态
         String state = checkResult.get("state").toString();
         //token中解析出的数据 , 没有token时，获取不到data
-        String userId = "";
-        if(state.equals(TokenState.VALID.toString())){
+        String uid = "";
+        try{
             JSONObject data = (JSONObject) checkResult.get("data");
-            userId =  data.get("userId").toString();
+            uid =  data.get("uid").toString();
+        }catch (Exception e){
+            log.info("token中解析数据失败!");
         }
 
+        Token queryToken = new Token();
+        queryToken.setUid(uid);
         //封装返回对象
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json; charset=utf-8");
         if(state.equals(TokenState.INVALID.toString())){
             //token合法性校验失败,原因：token不存在或者token格式有误
-            log.info("userId:" + userId + "====== token不存在或者token格式有误 =====");
+            log.info("uid:" + uid + "====== token不存在或者token格式有误 =====");
             response.getWriter().append(Res.failed(ResCode.TOKEN_ERROR_INVALID).toString());
         }else if(state.equals(TokenState.EXPIRED.toString())){
             //token合法性校验失败，原因：token过期
-            log.info("userId:" + userId + "============= token已经过期 ============");
+            log.info("uid:" + uid + "============= token已经过期,准备清除本地token数据 ============");
+            //已经知道token过期,需要立即清空本地数据库中token
+            userService.removeToken(queryToken);
             response.getWriter().append(Res.failed(ResCode.TOKEN_ERROR_EXPIRE).toString());
         }else{
-            //token合法性校验成功，还需要判断token是否存在（用户是否离线）
-            String redisToken = "";
-            //redis中token已被删除(redis中key过期自动删除 | 用户下线)，或者当前用户对应token已被修改（其他地方登录,被迫下线）
-            if(redisToken == null || !redisToken.equals(token)){
-                //用户已经下线，token被清除
-                response.getWriter().append(Res.failed(ResCode.TOKEN_ERROR_EXIT).toString());
-                log.info("userId:" + userId + "============= 已经离线，token已被清理 ============");
-            }else{
-                //用户在线
+            //token合法性校验成功, 还需要判断token是否被过期删除
+            Token dbToken = userService.getToken(queryToken);
+            if(dbToken != null){
                 result = true;
             }
         }
@@ -83,7 +84,9 @@ public class TokenInterceptor implements HandlerInterceptor {
      * 在业务处理器处理请求执行完成后，生成视图之前执行。
      * @param
      */
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {}
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+
+    }
 
     /**
      * 完成请求，已经返回给前端
