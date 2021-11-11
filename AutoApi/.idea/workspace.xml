@@ -22,10 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="21424c82-6a81-46e8-a09f-7a9e72164622" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../vue-cli3.0-vueadmin-master/src/config/httpConfig.js" beforeDir="false" afterPath="$PROJECT_DIR$/../vue-cli3.0-vueadmin-master/src/config/httpConfig.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vue-cli3.0-vueadmin-master/src/pages/login/login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../vue-cli3.0-vueadmin-master/src/pages/login/login.vue" afterDir="false" />
-    </list>
+    <list default="true" id="21424c82-6a81-46e8-a09f-7a9e72164622" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -292,7 +289,7 @@
       <workItem from="1636361703202" duration="1739000" />
       <workItem from="1636366052107" duration="30276000" />
       <workItem from="1636504032513" duration="26550000" />
-      <workItem from="1636592601469" duration="8863000" />
+      <workItem from="1636592601469" duration="9038000" />
     </task>
     <servers />
   </component>
