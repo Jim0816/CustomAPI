@@ -1,35 +1,46 @@
 package com.ljm.service.impl;
 
+import com.ljm.entity.Role;
 import com.ljm.entity.Token;
 import com.ljm.entity.User;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.CommonService;
+import com.ljm.service.RoleService;
 import com.ljm.service.UserService;
 import com.ljm.util.*;
 import com.ljm.vo.BeanField;
 import com.ljm.vo.Res;
 import com.ljm.vo.ResCode;
+import com.ljm.vo.UserVO;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.nimbusds.jose.shaded.json.JSONObject;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @Slf4j
-@AllArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
-
+    @Autowired
     private MongoDBUtil mongoDBUtil;
-
+    @Autowired
     private CommonService commonService;
 
-    private static final Integer tokenKeepAliveTime = 6;
+    @Autowired
+    private RoleService roleService;
+
+    @Value("${system.token}")
+    private String tokenKeepAliveTime;
 
     private static final String TABLE_NAME ="sys_user";
 
@@ -107,10 +118,18 @@ public class UserServiceImpl implements UserService {
     public String createToken(String uid) {
         Map<String, Object> tokenData = new HashMap<>();
         tokenData.put("uid", uid);//用户id
-        Float keepAlive = Float.valueOf(tokenKeepAliveTime); //单位:小时
+        Float keepAlive = Float.valueOf("6"); // 默认6小时
+        try{
+            String alive = tokenKeepAliveTime.substring(0, tokenKeepAliveTime.length() - 1);
+            keepAlive = Float.valueOf(alive); //单位:小时
+        }catch (Exception e){
+            e.printStackTrace();
+            log.info("token活跃时间获取失败！");
+        }
+
         Date date = new Date();
         long startTime = date.getTime();
-        long aliveTime = (long) (0.01 * (60 * 60 * 1000)); //存活时间 keepAlive 个小时 ; 1h = 60 * 60 * 1000 ms
+        long aliveTime = (long) (keepAlive * (60 * 60 * 1000)); //存活时间 keepAlive 个小时 ; 1h = 60 * 60 * 1000 ms
         log.info("用户ID: " + uid + " token开始时间: " + new Date(startTime) + ",   失效时间: " + new Date(startTime + aliveTime));
         tokenData.put("iat", startTime);//生成时间
         tokenData.put("ext",startTime + aliveTime);//过期时间
@@ -243,6 +262,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User get(String token) {
+        if(token != null){
+            //校验token
+            Map<String, Object> checkResult = TokenUtil.validToken(token);
+
+        }
+
+        return null;
+    }
+
+    @Override
     public List<User> list(User user) {
         List<User> res = mongoDBUtil.query(user, TABLE_NAME, 0, 100000);
         if(res != null && res.size() > 0){
@@ -252,5 +282,42 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
+    @Override
+    public User getAccessUser(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if(token != null && !token.equals("")){
+            Map<String, Object> checkResult = TokenUtil.validToken(token);
+            JSONObject data = (JSONObject) checkResult.get("data");
+            String uid =  data.get("uid").toString();
+            User queryUser = new User();
+            queryUser.setId(uid);
+            return get(queryUser);
+        }
+        return null;
+    }
+
+    @Override
+    public UserVO getAllUserInfo(User user) {
+        UserVO userVO = new UserVO();
+        Role role = roleService.get(new Role().setId(user.getRoleId()));
+        return userVO.copyParent(user).setRoleName(role.getRoleName()).setPermissionList(role.getMenuPermission().split(","));
+    }
+
+    @Override
+    public List<UserVO> getAllUserInfoList() {
+        List<UserVO> userVOList = new ArrayList<>();
+        //查询所有用户
+        List<User> users = list(new User());
+        if(users == null || users.size() == 0){
+            log.info("没有查询到任何用户");
+            return null;
+        }
+
+        //组装每个用户所有基础信息
+        for (User user : users) {
+            userVOList.add(getAllUserInfo(user));
+        }
+        return userVOList;
+    }
 
 }

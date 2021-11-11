@@ -8,7 +8,6 @@ var instance = axios.create({
     timeout: 5000,
     baseURL,
     validateStatus(status) {
-        console.log(status)
         switch (status) {
         case 400:
             Message.error('请求出错')
@@ -47,7 +46,6 @@ instance.interceptors.request.use(
     function(config) {
         // 请求头添加token
         if (store.state.UserToken) {
-            console.log(store.state.UserToken)
             //config.headers.Authorization = `Bearer ${store.state.UserToken}`
             config.headers.Authorization = store.state.UserToken
         }
@@ -85,6 +83,16 @@ http.get = function(url, options) {
         instance
             .get(url, options)
             .then(response => {
+                if (response.result === 1) {
+                    resolve(response)
+                } else {
+                    Message.error({
+                        message: response.msg
+                    })
+                    reject(response.msg)
+                }
+                loading = document.getElementById('ajaxLoading')
+                loading.style.display = 'none'
                 /*if (!options || options.isShowLoading !== false) {
                     loading = document.getElementById('ajaxLoading')
                     loading.style.display = 'none'
@@ -115,7 +123,16 @@ http.post = function(url, data, options) {
         instance
             .post(url, data, options)
             .then(response => {
-                resolve(response)
+                if (response.result === 1) {
+                    resolve(response)
+                } else {
+                    Message.error({
+                        message: response.msg
+                    })
+                    reject(response.msg)
+                }
+                loading = document.getElementById('ajaxLoading')
+                loading.style.display = 'none'
                 /*console.log(response)
                 if (!options || options.isShowLoading !== false) {
                     loading = document.getElementById('ajaxLoading')

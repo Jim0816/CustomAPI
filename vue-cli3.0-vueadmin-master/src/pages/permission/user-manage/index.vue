@@ -28,7 +28,7 @@
           width="60">
         </el-table-column>
         <el-table-column
-          prop="status"
+          prop="state"
           label="停用/启用"
           align="center"
           min-width="100">
@@ -36,7 +36,7 @@
             <!-- <el-tag v-if="scope.row.status=='1'" color="#13CE66">启用</el-tag>
             <el-tag v-if="scope.row.status=='0'" color="#FF4949">停用</el-tag> -->
             <el-switch
-              v-model="scope.row.status"
+              v-model="scope.row.state"
               :active-value="1"
               :inactive-value="0"
               active-text=""
@@ -46,35 +46,24 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="loginName"
-          label="登录名"
+          prop="username"
+          label="登录账号"
           min-width="120">
         </el-table-column>
         <el-table-column
-          prop="name"
-          label="真实姓名"
+          prop="nickname"
+          label="昵称"
           min-width="120">
-        </el-table-column>
-        <el-table-column
-          prop="mobile"
-          label="联系电话"
-          width="130">
-        </el-table-column>
-        <el-table-column
-          prop="roleList"
-          :formatter="roleFormatter"
-          min-width="210"
-          label="权限">
-        </el-table-column>
-        <el-table-column
-          prop="address"
-          min-width="200"
-          label="联系地址">
         </el-table-column>
         <el-table-column
           prop="email"
-          label="电子邮箱"
-          width="250">
+          label="邮箱"
+          width="130">
+        </el-table-column>
+        <el-table-column
+          prop="roleName"
+          label="角色"
+          min-width="120">
         </el-table-column>
         <el-table-column
           prop="lastLoginTime"
@@ -248,8 +237,9 @@ export default {
     },
     methods: {
         async initList() {
-            const data = await getUserList()
-            this.tableData = data
+            const res = await getUserList()
+            console.log(res)
+            this.tableData = res.data
         },
         handleStatus(row) {},
         statusFormat(row, column, cellValue) {

@@ -1,6 +1,9 @@
 package com.ljm.service;
 
 import com.ljm.entity.Table;
+import com.ljm.entity.User;
+
+import javax.servlet.http.HttpServletRequest;
 
 public interface CommonService {
     /**
@@ -10,5 +13,7 @@ public interface CommonService {
      * @author Jim
      */
     boolean tableIsExist(String tableName);
+
+
 
 }

@@ -5,7 +5,7 @@ spring:
   data:
     mongodb:
       uri: mongodb://jim:164411@202.122.39.37:27017/jimTest
-      #uri: mongodb://jim:164411@127.0.0.1:27017/jimTest
+      #uri: mongodb://jim:xxxxxx@127.0.0.1:27017/jimTest
 
 # 系统自定义配置
 system:
@@ -21,4 +21,5 @@ system:
       nickname: admin
       password: 123456
       role: supermanager
+  token: 6h
 

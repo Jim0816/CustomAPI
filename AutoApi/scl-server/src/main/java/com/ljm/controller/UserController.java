@@ -1,26 +1,23 @@
 package com.ljm.controller;
 
 import com.ljm.entity.User;
+import com.ljm.service.CommonService;
+import com.ljm.service.RoleService;
 import com.ljm.service.UserService;
 import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 @Slf4j
 @AllArgsConstructor
 @RestController
 @RequestMapping("user")
 public class UserController {
-
-
+    private CommonService commonService;
     private UserService userService;
+    private RoleService roleService;
 
 
     /**
@@ -32,6 +29,31 @@ public class UserController {
     @PostMapping(value = "/login")
     public Res login(@RequestBody User user){
         return userService.login(user);
+    }
+
+    /**
+     * 用户信息
+     * @param
+     * @return
+     * @author Jim
+     */
+    @GetMapping(value = "/info")
+    public Res info(HttpServletRequest request){
+        //获取请求头中的token
+        //1.获取用户个人信息
+        User user = userService.getAccessUser(request);
+        return Res.ok(userService.getAllUserInfo(user));
+    }
+
+    /**
+     * 用户列表
+     * @param
+     * @return
+     * @author Jim
+     */
+    @GetMapping(value = "/list")
+    public Res list(){
+        return Res.ok(userService.getAllUserInfoList());
     }
 
     /**

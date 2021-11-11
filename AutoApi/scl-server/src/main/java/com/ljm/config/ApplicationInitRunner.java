@@ -113,7 +113,8 @@ public class ApplicationInitRunner implements ApplicationRunner {
     public boolean insertInitDataToRoleAndUser(){
         // 1.先查询默认角色和默认用户是否存在
         Role role = new Role();
-        role.setId(StringUtil.generateUUID()).setRoleCode(superManagerRole).setRoleName("超级管理员").setMenuPermission("*").setState(1).setIsDelete(0);
+        String menuPermission = "table,table-list,api,api-list,permission,user-manage";
+        role.setId(StringUtil.generateUUID()).setRoleCode(superManagerRole).setRoleName("超级管理员").setMenuPermission(menuPermission).setState(1).setIsDelete(0);
         Set<String> uniqueFields = new HashSet<>();
         uniqueFields.add("id");
         if(roleService.add(role)){

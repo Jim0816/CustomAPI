@@ -3,7 +3,9 @@ package com.ljm.service;
 import com.ljm.entity.Token;
 import com.ljm.entity.User;
 import com.ljm.vo.Res;
+import com.ljm.vo.UserVO;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,5 +77,40 @@ public interface UserService {
 
     User get(User user);
 
+    /**
+     * 通过token查询用户信息
+     * @param
+     * @return
+     * @author Jim
+     */
+    User get(String token);
+
     List<User> list(User user);
+
+    /**
+     * 获取当前访问接口的用户信息
+     * @param request
+     * @return
+     * @author Jim
+     */
+    User getAccessUser(HttpServletRequest request);
+
+
+    /**
+     * 获取当前访问接口的用户所有准备信息
+     * @param user
+     * @return
+     * @author Jim
+     */
+    UserVO getAllUserInfo(User user);
+
+    /**
+     * 获取所有用户基本信息
+     * @param
+     * @return
+     * @author Jim
+     */
+    List<UserVO> getAllUserInfoList();
+
+
 }

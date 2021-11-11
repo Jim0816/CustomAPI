@@ -42,13 +42,16 @@ export default {
     },
     actions: {
         async FETCH_PERMISSION({ commit, state }) {
-            let permissionList = await fetchPermission()
+            let userInfo = await fetchPermission()
+            //console.log(userInfo)
+            let permissionList = {
+                data: userInfo.data.permissionList,
+                avatar: 'https://img1.baidu.com/it/u=4244912955,493530578&fm=26&fmt=auto',
+                name: userInfo.data.username,
+            }
+            //console.log(permissionList)
             commit('SET_AVATAR', permissionList.avatar)
             commit('SET_ACCOUNT', permissionList.name)
-            permissionList.data.push('table')
-            permissionList.data.push('table-list')
-            permissionList.data.push('api')
-            permissionList.data.push('api-list')
             let routes = recursionRouter(permissionList.data, dynamicRouter)
             let MainContainer = DynamicRoutes.find(v => v.path === '')
             let children = MainContainer.children

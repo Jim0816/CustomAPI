@@ -14,8 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 @RunWith(SpringRunner.class)
@@ -27,8 +25,8 @@ public class MyTest {
 
     @Test
     public void testMethod() {
-        String a = "Bearer eyJ0eXAiOiJKV";
-        System.out.println(a.substring(7, a.length()));
+        String a = "eyJ0eXAiOiJKV";
+        System.out.println(a.substring(1, a.length()));
     }
 
 }

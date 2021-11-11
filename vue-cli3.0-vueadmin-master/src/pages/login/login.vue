@@ -85,7 +85,6 @@ export default {
                 }
                 let res = await login(loginUser)
                 let token = res.data.token
-                console.log(token)
                 this.$store.commit('LOGIN_IN', token)
                 this.$router.replace('/')
             } catch (e) {
