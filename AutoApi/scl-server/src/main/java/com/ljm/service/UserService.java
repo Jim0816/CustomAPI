@@ -20,6 +20,30 @@ public interface UserService {
     boolean add(User user);
 
     /**
+     * 修改用户，不修改密码(按照用户id筛选，进行修改)
+     * @param
+     * @return
+     * @author Jim
+     */
+    boolean update(User user);
+
+    /**
+     * 只修改密码(按照用户id筛选，进行修改)
+     * @param
+     * @return
+     * @author Jim
+     */
+    boolean updatePassword(User user);
+
+    /**
+     * 删除用户(按照用户id筛选)
+     * @param
+     * @return
+     * @author Jim
+     */
+    boolean remove(User user);
+
+    /**
      * 登录验证
      * @param
      * @return

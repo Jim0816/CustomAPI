@@ -77,16 +77,9 @@
           width="170">
           <template slot-scope="scope">
   <div>
-    <el-button
-      type="text"
-      size="small"
-      @click="handleEdit(scope.$index, scope.row)"
-    >编辑</el-button>
-    <el-button
-      type="text"
-      size="small"
-      @click="handleResetPwd(scope.$index, scope.row)"
-    >重置密码</el-button>
+    <el-button type="text" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+    <el-button type="text" size="small" @click="handleResetPwd(scope.$index, scope.row)">重置密码</el-button>
+    <el-button type="text" size="small" @click="handleDel(scope.$index, scope.row)" style="color:red;">删除</el-button>
   </div>
 </template>
         </el-table-column>
@@ -139,7 +132,7 @@
 </template>
 <script>
 import { getUserList, getRoleList } from '@/api/permission'
-import { add } from '@/api/user'
+import { add, update, updatePassword, remove } from '@/api/user'
 import {encryptWebPassword} from '@/utils/md5-util'
 import moment from 'moment'
 export default {
@@ -185,6 +178,7 @@ export default {
             searchData: {
                 loginName: ''
             },
+            defaultPassword: '123456',
             dataForm: {
                 id: '',
                 username: '',
@@ -251,7 +245,21 @@ export default {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning'
-            }).then(() => {})
+            }).then(() => {
+                //重置密码
+                row.password = encryptWebPassword(this.defaultPassword)
+                this.updateUserPassword(row)
+            })
+        },
+        handleDel(index, row) {
+            this.$confirm('确认删除该用户信息？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                //删除用户
+                this.removeUser(row)
+            })
         },
         handleEdit(index, row) {
             this.dialogVisible = true
@@ -276,13 +284,78 @@ export default {
                 if (valid) {
                     //校验成功，准备提交后台
                     //默认初始密码
-                    this.dataForm.password = encryptWebPassword('123456')
-                    const res = await add(this.dataForm)
+                    this.dataForm.password = encryptWebPassword(this.defaultPassword)
+                    this.createUser(this.dataForm)
                 } else {
-                    console.log('error submit!!');
+                    console.log('error submit!!')
                     return false;
                 }
-            });
+            })
+        },
+        async createUser(user){
+            console.log(user)
+            const res = await add(user)
+            if(res.result == 1){
+                this.$message({
+                    message: '用户创建成功',
+                    type: 'success'
+                });
+                this.init()
+            }else{
+                this.$message({
+                    message: '用户创建失败',
+                    type: 'error'
+                });
+            }
+            this.dialogVisible = false
+        },
+        async updateUser(user){
+            const res = await update(user)
+            console.log(res)
+            if(res.result == 1 && res.data == true){
+                this.$message({
+                    message: '修改成功',
+                    type: 'success'
+                });
+                this.init()
+            }else{
+                this.$message({
+                    message: '修改失败',
+                    type: 'error'
+                });
+            }
+            this.dialogVisible = false
+        },
+        async updateUserPassword(user){
+            const res = await updatePassword(user)
+            console.log(res)
+            if(res.result == 1 && res.data == true){
+                this.$message({
+                    message: '重置成功',
+                    type: 'success'
+                });
+                this.init()
+            }else{
+                this.$message({
+                    message: '重置失败,当前密码为初始密码',
+                    type: 'warning'
+                });
+            }
+        },
+        async removeUser(user){
+            const res = await remove(user)
+            if(res.result == 1 && res.data == true){
+                this.$message({
+                    message: '删除成功',
+                    type: 'success'
+                });
+                this.init()
+            }else{
+                this.$message({
+                    message: '删除失败',
+                    type: 'error'
+                });
+            }
         }
     }
 }

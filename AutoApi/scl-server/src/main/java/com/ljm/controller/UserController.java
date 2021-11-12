@@ -4,6 +4,7 @@ import com.ljm.entity.User;
 import com.ljm.service.CommonService;
 import com.ljm.service.RoleService;
 import com.ljm.service.UserService;
+import com.ljm.util.MD5Util;
 import com.ljm.util.StringUtil;
 import com.ljm.vo.Res;
 import com.ljm.vo.ResCode;
@@ -31,13 +32,58 @@ public class UserController {
     @PostMapping(value = "/create")
     public Res create(@RequestBody User user){
         if(user != null && user.getRoleId() != null && !user.getRoleId().equals("")){
-            user.setId(StringUtil.generateUUID()).setRoleId(user.getRoleId()).setSalt(StringUtil.generateByRandom(6)).setState(1).setIsDelete(0);
+            String randomSalt = StringUtil.generateByRandom(6);
+            user.setId(StringUtil.generateUUID()).setRoleId(user.getRoleId())
+                    .setPassword(MD5Util.encryptFromWebSecretToDB(user.getPassword(), randomSalt))
+                    .setSalt(randomSalt).setState(1).setIsDelete(0);
             if(userService.add(user)){
                 //插入数据库成功
                 return Res.ok(user);
             }
         }
         return Res.failed(ResCode.CREATE_USER_FAILED);
+    }
+
+    /**
+     * 修改用户
+     * @param
+     * @return
+     * @author Jim
+     */
+    @PostMapping(value = "/update")
+    public Res update(@RequestBody User user){
+        if(user != null){
+            return Res.ok(userService.update(user));
+        }
+        return Res.failed(ResCode.UPDATE_USER_FAILED);
+    }
+
+    /**
+     * 修改密码
+     * @param
+     * @return
+     * @author Jim
+     */
+    @PostMapping(value = "/updatePassword")
+    public Res updatePassword(@RequestBody User user){
+        if(user != null){
+            return Res.ok(userService.updatePassword(user));
+        }
+        return Res.failed(ResCode.UPDATE_USER_FAILED);
+    }
+
+    /**
+     * 删除用户
+     * @param
+     * @return
+     * @author Jim
+     */
+    @PostMapping(value = "/remove")
+    public Res remove(@RequestBody User user){
+        if(user != null){
+            return Res.ok(userService.remove(user));
+        }
+        return Res.failed(ResCode.DELETE_USER_FAILED);
     }
 
     /**

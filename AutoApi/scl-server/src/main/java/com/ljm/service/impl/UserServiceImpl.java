@@ -70,6 +70,55 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean update(User user) {
+        if(user != null){
+            //筛选条件
+            List<FilterModel> filters = new ArrayList<>();
+            FilterModel filterModel = new FilterModel("id", user.getId(), "string", "=", "and");
+            filters.add(filterModel);
+            //修改条件
+            Update update = new Update();
+            //获取数据对象的非空键值对
+            Map<String, BeanField> notNullPropertyNames = BeanUtil.getNotNullPropertyNames(user);
+            for(String key : notNullPropertyNames.keySet()){
+                if(!key.equals("id")){
+                    BeanField beanField = notNullPropertyNames.get(key);
+                    update.set(key, beanField.getValue());
+                }
+            }
+            //执行修改
+            UpdateResult updateResult = mongoDBUtil.updateDoc(TABLE_NAME, SqlMongoDBParser.addFilters(new Query(), filters), update);
+            if(updateResult.getModifiedCount() > 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean updatePassword(User user) {
+        User updateUser = new User();
+        String newPassword = MD5Util.encryptFromWebSecretToDB(user.getPassword(), user.getSalt());
+        updateUser.setId(user.getId()).setPassword(newPassword);
+        return update(updateUser);
+    }
+
+    @Override
+    public boolean remove(User user) {
+        if(user != null){
+            //筛选条件
+            List<FilterModel> filters = new ArrayList<>();
+            FilterModel filterModel = new FilterModel("id", user.getId(), "string", "=", "and");
+            filters.add(filterModel);
+            DeleteResult deleteResult = mongoDBUtil.removeDoc(TABLE_NAME, SqlMongoDBParser.addFilters(new Query(), filters));
+            if(deleteResult.getDeletedCount() > 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Res login(User user) {
         if(user == null){
             log.info("接收用户数据失败");

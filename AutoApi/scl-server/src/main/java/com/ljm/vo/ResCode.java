@@ -19,6 +19,8 @@ public enum ResCode {
     LOGIN_ERROR_3(500203, "接受登录用户校验数据失败", 0),
     LOGIN_ERROR_4(500204, "用户校验成功，服务器异常导致token无效", 0),
     CREATE_USER_FAILED(500205, "用户创建失败", 0),
+    UPDATE_USER_FAILED(500206, "用户修改失败", 0),
+    DELETE_USER_FAILED(500207, "用户删除失败", 0),
     TOKEN_ERROR_INVALID(500202, "token不存在或者token格式有误", 0),
     TOKEN_ERROR_EXPIRE(500203, "token已经过期", 0),
     TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理", 0);
