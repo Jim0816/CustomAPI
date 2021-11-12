@@ -105,7 +105,7 @@ public interface UserService {
     UserVO getAllUserInfo(User user);
 
     /**
-     * 获取所有用户基本信息
+     * 获取所有用户基本信息 (没有被逻辑删除的)
      * @param
      * @return
      * @author Jim

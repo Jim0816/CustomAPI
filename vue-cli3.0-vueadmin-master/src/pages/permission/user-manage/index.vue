@@ -104,28 +104,26 @@
     </div>
     <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" @close="onDialogClose()">
       <el-form ref="dataForm" :rules="rules" :model="dataForm" label-width="80px">
-        <el-form-item label="登录名" prop="loginName">
+        <!--<el-form-item label="登录名" prop="loginName">
           <template v-if="dialogTitle=='修改用户信息'">{{dataForm.loginName}}</template>
           <el-input v-else v-model="dataForm.loginName" placeholder="登录名"></el-input>
-        </el-form-item>
-        <el-form-item label="用户角色" prop="roleIds">
-          <el-select v-model="dataForm.tempRoleIds" multiple placeholder="请选择" style="width: 100%;">
-            <el-option
-              v-for="item in roles"
-              :key="item.id"
-              :label="item.roleName"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="真实姓名" prop="name">
-              <el-input v-model="dataForm.name" placeholder="真实姓名"></el-input>
+        </el-form-item>-->
+        <el-form-item label="登录账号" prop="username">
+            <template v-if="dialogTitle=='修改用户信息'">{{dataForm.username}}</template>
+              <el-input v-model="dataForm.username" placeholder="请输入用户登录账号"></el-input>
             </el-form-item>
-            <el-form-item label="联系电话" prop="mobile">
-              <el-input v-model="dataForm.mobile" placeholder="联系电话"></el-input>
+            <el-form-item label="昵称" prop="nickname">
+              <el-input v-model="dataForm.nickname" placeholder="请输入用户昵称"></el-input>
             </el-form-item>
-            <el-form-item label="联系地址" prop="address">
-              <el-input v-model="dataForm.address" placeholder="联系地址"></el-input>
+            <el-form-item label="用户角色" prop="roleId">
+              <el-select v-model="dataForm.roleId" placeholder="请选择角色" style="width: 100%;">
+                  <el-option
+                      v-for="item in rolesDic"
+                      :key="item.id"
+                      :label="item.roleName"
+                      :value="item.id">
+                  </el-option>
+              </el-select>
             </el-form-item>
             <el-form-item label="电子邮箱" prop="email">
               <el-input v-model="dataForm.email" placeholder="电子邮箱"></el-input>
@@ -134,13 +132,15 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="info" @click="onDialogSubmit()" v-if="dialogTitle=='修改用户信息'">保存</el-button>
-        <el-button type="primary" @click="onDialogSubmit()" v-else>立即创建</el-button>
+        <el-button type="primary" @click="onDialogSubmit('dataForm')" v-else>立即创建</el-button>
       </div>
     </el-dialog>
   </el-card>
 </template>
 <script>
-import { getUserList } from '@/api/permission'
+import { getUserList, getRoleList } from '@/api/permission'
+import { add } from '@/api/user'
+import {encryptWebPassword} from '@/utils/md5-util'
 import moment from 'moment'
 export default {
     data() {
@@ -165,80 +165,48 @@ export default {
                 label: 'permissionName'
             },
             rules: {
-                loginName: [
+                username: [
                     {
                         required: true,
-                        message: '登录名不能为空',
+                        message: '用户登录账号不能为空',
                         trigger: 'blur'
                     },
                     {
-                        min: 1,
-                        max: 50,
-                        message: '登录名长度在 1 到 50 个字符',
+                        min: 5,
+                        max: 30,
+                        message: '长度在 5 到 30 个字符',
                         trigger: 'blur'
                     }
                 ],
-                name: [
-                    {
-                        required: true,
-                        message: '真实姓名不能为空',
-                        trigger: 'blur'
-                    },
-                    {
-                        min: 1,
-                        max: 20,
-                        message: '真实姓名长度在 1 到 20 个字符',
-                        trigger: 'blur'
-                    }
+                roleId: [
+                    { required: true, message: '请选择用户角色', trigger: 'change' }
                 ],
-                mobile: [
-                    {
-                        required: true,
-                        message: '联系电话不能为空',
-                        trigger: 'blur'
-                    },
-                    {
-                        pattern: /^(13|15|18|14|17)[0-9]{9}$/,
-                        message: '手机号码格式不正确',
-                        trigger: 'blur'
-                    }
-                ],
-                email: [
-                    {
-                        required: true,
-                        message: '请输入邮箱地址',
-                        trigger: 'blur'
-                    },
-                    {
-                        type: 'email',
-                        message: '邮箱格式不正确',
-                        trigger: 'blur, change'
-                    }
-                ]
             },
             searchData: {
                 loginName: ''
             },
             dataForm: {
                 id: '',
-                loginName: '',
-                tempRoleIds: [],
-                roleIds: '',
-                name: '',
-                mobile: '',
-                address: '',
-                email: ''
+                username: '',
+                nickname: '',
+                password: '',
+                email: '',
+                roleId: '',
             },
+            rolesDic: [],
             tableData: []
         }
     },
     created() {
-        this.initList()
+        this.init()
     },
     methods: {
-        async initList() {
+        async init() {
+            //准备角色字典
+            const roles =  await getRoleList()
+            this.rolesDic = roles.data
+
             const res = await getUserList()
-            console.log(res)
             this.tableData = res.data
         },
         handleStatus(row) {},
@@ -303,7 +271,19 @@ export default {
                 }
             }
         },
-        onDialogSubmit() {}
+        async onDialogSubmit(formName) {
+             this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    //校验成功，准备提交后台
+                    //默认初始密码
+                    this.dataForm.password = encryptWebPassword('123456')
+                    const res = await add(this.dataForm)
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        }
     }
 }
 </script>

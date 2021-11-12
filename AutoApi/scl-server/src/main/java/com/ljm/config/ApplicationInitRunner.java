@@ -112,12 +112,16 @@ public class ApplicationInitRunner implements ApplicationRunner {
      */
     public boolean insertInitDataToRoleAndUser(){
         // 1.先查询默认角色和默认用户是否存在
-        Role role = new Role();
+        //管理员juese
+        Role role1 = new Role();
         String menuPermission = "table,table-list,api,api-list,permission,user-manage";
-        role.setId(StringUtil.generateUUID()).setRoleCode(superManagerRole).setRoleName("超级管理员").setMenuPermission(menuPermission).setState(1).setIsDelete(0);
-        Set<String> uniqueFields = new HashSet<>();
-        uniqueFields.add("id");
-        if(roleService.add(role)){
+        role1.setId(StringUtil.generateUUID()).setRoleCode(superManagerRole).setRoleName("超级管理员").setMenuPermission(menuPermission).setState(1).setIsDelete(0);
+        //普通用户角色
+        Role role2 = new Role();
+        String menuPermission2 = "";
+        role2.setId(StringUtil.generateUUID()).setRoleCode("user").setRoleName("普通用户").setMenuPermission(menuPermission2).setState(1).setIsDelete(0);
+
+        if(roleService.add(role1) && roleService.add(role2)){
             User user = new User();
             //仿照：前端传递过来的密文
             String webToPlatPassword = MD5Util.encryptFromUserToPass(superManagerPassword);
@@ -125,7 +129,7 @@ public class ApplicationInitRunner implements ApplicationRunner {
             String salt = StringUtil.generateByRandom(6);
             String platToDBPassword = MD5Util.encryptFromWebSecretToDB(webToPlatPassword,salt);
             user.setId(StringUtil.generateUUID()).setUsername(superManagerUsername).setNickname(superManagerNickname).setPassword(platToDBPassword)
-                    .setRoleId(role.getId()).setSalt(salt).setState(1).setIsDelete(0);
+                    .setRoleId(role1.getId()).setSalt(salt).setState(1).setIsDelete(0);
             return userService.add(user);
         }
         return false;

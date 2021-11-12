@@ -96,7 +96,7 @@ public class UserServiceImpl implements UserService {
             String token = createToken(dbUser.getId());
             if(token!=null){
                 log.info("用户登录成功："+user.getUsername());
-                //return new LoginResult(ResCode.LOGIN_SUCCESS, true, token);
+                //更新登录时间 lastLoginTime(待完成)
                 Map<String,Object> data = new HashMap<>();
                 data.put("token", token);
                 return Res.ok(data, ResCode.LOGIN_SUCCESS);
@@ -306,8 +306,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserVO> getAllUserInfoList() {
         List<UserVO> userVOList = new ArrayList<>();
-        //查询所有用户
-        List<User> users = list(new User());
+        //查询没有被删除的所有用户
+        List<User> users = list(new User().setIsDelete(0));
         if(users == null || users.size() == 0){
             log.info("没有查询到任何用户");
             return null;

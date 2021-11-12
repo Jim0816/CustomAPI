@@ -28,7 +28,7 @@
 
 <script>
 
-import md5 from 'js-md5'
+import {encryptWebPassword} from '@/utils/md5-util'
 import { login } from '@/api/permission'
 
 export default {
@@ -68,6 +68,8 @@ export default {
             pwdType: 'password'
         }
     },
+    created() {
+    },
     methods: {
         showPwd() {
             if (this.pwdType === 'password') {
@@ -78,10 +80,9 @@ export default {
         },
         async login() {
             try {
-                let salt = "1a2b3c"
                 let loginUser = {
                     username: this.loginForm.username,
-                    password: md5(salt.charAt(0) + this.loginForm.password + salt.charAt(1) + salt.charAt(salt.length-1)) //后端盐长度取6  取出3粒盐
+                    password: encryptWebPassword(this.loginForm.password)
                 }
                 let res = await login(loginUser)
                 let token = res.data.token
