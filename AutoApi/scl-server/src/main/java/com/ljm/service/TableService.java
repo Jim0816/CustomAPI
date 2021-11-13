@@ -2,6 +2,7 @@ package com.ljm.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.Table;
+import com.ljm.entity.User;
 import com.ljm.parseMongo.model.FilterModel;
 
 import java.util.List;
@@ -10,6 +11,23 @@ import java.util.Set;
 
 public interface TableService {
 
+    /**
+     * 查询当前数据库下所有集合
+     * @param
+     * @return
+     * @author Jim
+     */
+    List<Table> list(Table table);
+
+    Table get(Table table);
+
+    /**
+     * 创建集合
+     * @param table 新建集合基本信息
+     * @return
+     * @author Jim
+     */
+    boolean add(Table table);
 
     /**
      * 创建集合 ①创建空表 ②存储该表的描述信息

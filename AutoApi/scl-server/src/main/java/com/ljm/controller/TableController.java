@@ -6,14 +6,14 @@ import com.ljm.entity.Table;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
 import com.ljm.service.TableService;
+import com.ljm.util.StringUtil;
 import com.ljm.vo.AccessUser;
+import com.ljm.vo.Query;
 import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,19 +31,27 @@ public class TableController {
 
 
     /**
+     * 查询当前数据库所有集合
+     * @param
+     * @return
+     * @author Jim
+     */
+    @GetMapping(value = "/list")
+    public Res list() {
+        Table queryTable = new Table();
+        return Res.ok(tableService.list(queryTable));
+    }
+
+    /**
      * 创建集合 (创建集合是默认创建基础增删改查接口)
      * @param table 表对象数据
      * @return
      * @author Jim
      */
-    @PostMapping(value = "/create")
-    public Res create(@RequestBody Table table, AccessUser accessUser) throws IOException {
-        //tableService.createTable(table.format(0, accessUser.getUuid()));
-        /*if(dataService.createCollection(table.addBaseInfo(null))){
-            //表（集合）创建成功，开始创建基础接口
-            return apiService.createBaseApis(table);
-        }*/
-        return Res.ok(null);
+    @PostMapping(value = "/add")
+    public Res add(@RequestBody Table table){
+        table.setId(StringUtil.generateUUID());
+        return Res.ok(tableService.add(table));
     }
 
     /**
@@ -83,17 +91,6 @@ public class TableController {
             }).collect(Collectors.toList());
         }
         return tables;
-    }
-
-    /**
-     * 查询当前数据库所有集合
-     * @param
-     * @return
-     * @author Jim
-     */
-    @PostMapping(value = "/get")
-    public Res get(@RequestBody Table table) {
-        return Res.ok(tableService.getTables(table));
     }
 
     /**

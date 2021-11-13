@@ -22,8 +22,8 @@
                 @toolbar-tool-click="toolbarToolClickEvent">
                 <!--操作行-->
                 <template #operate="{ row }">
-                    <vxe-button icon="fa fa-edit" title="编辑" circle @click="editTable(row)"></vxe-button>
-                    <vxe-button icon="fa fa-trash" title="删除" circle @click="removeTable(row)"></vxe-button>
+                    <vxe-button :disabled="row.tableName.indexOf('sys_') != -1 ? true : false" icon="fa fa-edit" title="编辑" circle @click="editTable(row)"></vxe-button>
+                    <vxe-button :disabled="row.tableName.indexOf('sys_') != -1 ? true : false" icon="fa fa-trash" title="删除" circle @click="removeTable(row)"></vxe-button>
                     <vxe-button icon="fa fa-eye" title="查看" circle @click="showTable(row)"></vxe-button>
                 </template>
                 <!--分页-->
@@ -192,7 +192,7 @@ export default {
                 { field: 'tableName', title: '表名', showOverflow: true },
                 { field: 'dbType', title: '存储类型', showOverflow: true },
                 { field: 'desc', title: '数据描述', showOverflow: true },
-                { field: 'fields', title: '字段列表', showOverflow: true },
+                //{ field: 'fields', title: '字段列表', showOverflow: true },
                 { title: '操作', width: 200, slots: { default: 'operate' }, align: 'center' }
             ],
             showTableModal: false,
@@ -281,22 +281,12 @@ export default {
     methods: {
         findList () {
             this.loading = true
-            setTimeout(() => {
+            setTimeout(async () => {
                 this.loading = false
                 this.tablePage.total = 10
-                this.tableData = [
-                    {
-                        id: '10001',
-                        tableName: 'tb_dept',
-                        dbType: 'MongoDB',
-                        desc: '部门信息表',
-                        fields: [
-                            { id: 10001, name: 'dept_id', type: 'String', length: 20, isRequire: 0, isUnique: 0, default: '', remark: '部门ID' },
-                            { id: 10002, name: 'dept_name', type: 'String', length: 20, isRequire: 0, isUnique: 0, default: '', remark: '部门名称' }
-                        ]
-                    },
-                ]
-            }, 300)
+                let res = await list()
+                this.tableData = res.data
+            }, 100)
         },
         searchEvent () {
             this.tablePage.currentPage = 1
@@ -430,7 +420,7 @@ export default {
                 return new Error()
             }
         },
-        fieldToolbarButtonClickEvent ({ code }) {
+        async fieldToolbarButtonClickEvent ({ code }) {
             const $grid = this.$refs.xGrid
             switch (code) {
             case 'addField':
@@ -441,6 +431,21 @@ export default {
             case 'saveTable':
                 // 准备填写表基本信息
                 if(this.tableObj.fields.length > 0){
+                    console.log(this.tableObj)
+                    const res = await add(this.tableObj)
+                    if(res.data){
+                        //创建成功
+                        this.$message({
+                            message: '创建成功',
+                            type: 'success'
+                        });
+                    }else{
+                        //创建失败
+                        this.$message({
+                            message: '创建失败',
+                            type: 'error'
+                        });
+                    }
                     this.addTableBasicInfoModal = true
                 }else{
                     this.$message({

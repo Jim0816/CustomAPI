@@ -2,9 +2,11 @@ package com.ljm.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ljm.entity.Table;
+import com.ljm.entity.User;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
+import com.ljm.service.CommonService;
 import com.ljm.service.TableService;
 import com.ljm.util.MongoDBUtil;
 import com.mongodb.client.result.DeleteResult;
@@ -25,8 +27,57 @@ public class TableServiceImpl implements TableService {
 
     private MongoDBUtil mongoDBUtil;
 
+    private CommonService commonService;
+
     private static final String TABLE_NAME ="sys_table";
 
+    public List<Table> list(Table table) {
+        List<Table> res = mongoDBUtil.query(table, TABLE_NAME, 0, 100000);
+        if(res != null && res.size() > 0){
+            return res;
+        }
+        log.info("没有查询到任何数据，查询失败！");
+        return null;
+    }
+
+    @Override
+    public Table get(Table table) {
+        List<Table> res = mongoDBUtil.query(table, TABLE_NAME, 0, 10);
+        if(res != null && res.size() > 0) {
+            //查询成功，有数据
+            if(res.size() == 1){
+                //查询成功
+                return res.get(0);
+            }else if(res.size() > 1){
+                log.info("查询到多个数据！");
+                return null;
+            }
+        }
+        log.info("没有查询到任何数据！");
+        return null;
+    }
+
+    @Override
+    public boolean add(Table table) {
+        if(commonService.tableIsExist(TABLE_NAME)){
+            //表存在 -> 判断唯一键是否已经存在
+            Table queryTable = new Table();
+            //构建查询条件
+            queryTable.setTableName(table.getTableName());
+            if(get(queryTable) == null){
+                //唯一字段不存在存在别的数据中 -> 允许插入
+                return mongoDBUtil.insertDocumentNeedCheckData(table,TABLE_NAME);
+            }else{
+                //插入数据的前提必须表的元数据信息存在，才能满足后期数据插入的一系列校验、格式化操作
+                log.info("表："+TABLE_NAME + "中存在当前数据,拒绝重复插入!");
+                return false;
+            }
+        }else{
+            //插入数据的前提必须表的元数据信息存在，才能满足后期数据插入的一系列校验、格式化操作
+            log.info("表："+TABLE_NAME + "不存在,拒绝插入数据！");
+            return false;
+        }
+    }
 
     @Override
     public boolean createTable(Table table) {
