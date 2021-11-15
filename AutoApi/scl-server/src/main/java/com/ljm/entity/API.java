@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -47,7 +48,7 @@ public class API implements Serializable {
     /**
      * 接口权限
      * */
-    private Map<String,Object> permission;
+    private List<String> permission;
 
     /**
      * 接口要求

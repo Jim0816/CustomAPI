@@ -5,12 +5,11 @@ import com.ljm.entity.API;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.service.APIService;
 import com.ljm.service.TableService;
+import com.ljm.util.StringUtil;
 import com.ljm.vo.Res;
+import com.ljm.vo.ResCode;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -25,20 +24,36 @@ public class APIController {
 
     /**
      * 创建API对象
-     * @param request 请求数据
+     * @param api
      * @return
      * @author Jim
      */
-    @PostMapping(value = "/create")
-    public Res create(@RequestBody String request) throws IOException {
-        API api = JSONObject.parseObject(request, API.class);
-        //api.generateInfo();
-        boolean result = apiService.addApi(api);
-        if(result){
-            return Res.ok("操作成功");
-        }else{
-            return Res.failed("操作失败");
+    @PostMapping(value = "/add")
+    public Res add(@RequestBody API api){
+        if(api != null){
+            //1.注册接口对象
+            String tag = StringUtil.generateByRandom(6);
+            //接口地址例子 url = "http://127.0.0.1:8081/service/user/get?tag=1w2ryP";
+            String url = "http://127.0.0.1:8081/service/user/get?tag=1w2ryP";
+            StringBuffer sb = new StringBuffer("http://127.0.0.1:8081/service/");
+            sb.append(api.getTableName()).append("/");
+            String operateType = (String) api.getRequire().get("operate");
+            sb.append(operateType).append("?tag=").append(tag);
+            api.setId(StringUtil.generateUUID()).setTag(tag).setUrl(sb.toString()).setIsDelete(0);
+            return Res.ok(apiService.add(api));
         }
+        return Res.failed(ResCode.CREATE_API_FAILED);
+    }
+
+    /**
+     * 查询API对象列表
+     * @param
+     * @return
+     * @author Jim
+     */
+    @GetMapping(value = "/list")
+    public Res list(){
+        return Res.ok(apiService.list(new API()));
     }
 
     /**

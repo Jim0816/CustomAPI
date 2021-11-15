@@ -29,7 +29,7 @@ public class UserController {
      * @return
      * @author Jim
      */
-    @PostMapping(value = "/create")
+    @PostMapping(value = "/add")
     public Res create(@RequestBody User user){
         if(user != null && user.getRoleId() != null && !user.getRoleId().equals("")){
             String randomSalt = StringUtil.generateByRandom(6);

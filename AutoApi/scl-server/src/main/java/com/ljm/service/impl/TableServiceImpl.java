@@ -8,12 +8,15 @@ import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
 import com.ljm.service.CommonService;
 import com.ljm.service.TableService;
+import com.ljm.util.BeanUtil;
 import com.ljm.util.MongoDBUtil;
+import com.ljm.vo.BeanField;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
 
@@ -77,6 +80,47 @@ public class TableServiceImpl implements TableService {
             log.info("表："+TABLE_NAME + "不存在,拒绝插入数据！");
             return false;
         }
+    }
+
+    @Override
+    public boolean remove(Table table) {
+        if(table != null){
+            //筛选条件
+            List<FilterModel> filters = new ArrayList<>();
+            FilterModel filterModel = new FilterModel("id", table.getId(), "string", "=", "and");
+            filters.add(filterModel);
+            DeleteResult deleteResult = mongoDBUtil.removeDoc(TABLE_NAME, SqlMongoDBParser.addFilters(new Query(), filters));
+            if(deleteResult.getDeletedCount() > 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean update(Table table) {
+        if(table != null){
+            //筛选条件
+            List<FilterModel> filters = new ArrayList<>();
+            FilterModel filterModel = new FilterModel("id", table.getId(), "string", "=", "and");
+            filters.add(filterModel);
+            //修改条件
+            Update update = new Update();
+            //获取数据对象的非空键值对
+            Map<String, BeanField> notNullPropertyNames = BeanUtil.getNotNullPropertyNames(table);
+            for(String key : notNullPropertyNames.keySet()){
+                if(!key.equals("id")){
+                    BeanField beanField = notNullPropertyNames.get(key);
+                    update.set(key, beanField.getValue());
+                }
+            }
+            //执行修改
+            UpdateResult updateResult = mongoDBUtil.updateDoc(TABLE_NAME, SqlMongoDBParser.addFilters(new Query(), filters), update);
+            if(updateResult.getModifiedCount() > 0){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

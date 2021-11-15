@@ -177,7 +177,7 @@ export default {
             tableToolbar: {
                 buttons: [
                     { code: 'addTable', name: '新增', status: 'primary', icon: 'fa fa-plus' },
-                    { code: 'myBatchDel', name: '批量删除', status: 'danger', icon: 'el-icon-delete' }
+                    //{ code: 'myBatchDel', name: '批量删除', status: 'danger', icon: 'el-icon-delete' }
                 ],
                 refresh: true,
                 import: true,
@@ -197,6 +197,7 @@ export default {
             ],
             showTableModal: false,
             addTableModal: false,
+            isEdit: 0,
             tableDefaultObj: {
                 tableName: '',
                 dbType: 'MongoDB',
@@ -301,18 +302,16 @@ export default {
             // 深拷贝
             this.tableObj = JSON.parse(JSON.stringify(row))
             this.addTableModal = true
+            this.isEdit = 1
         },
         removeTable(row) {
             this.$confirm('是否要删除此项数据, 是否继续?', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning'
-            }).then(() => {
-                /*const $grid = this.$refs.xGrid
-                const selectRecords = $grid.getRowIndex(row)
-                console.log(selectRecords)*/
-                let res = this.removeTableSubmit(row)
-                if(res) {
+            }).then(async () => {
+                const res = await remove(row.id)
+                if(res.data) {
                     // 删除成功，刷新列表
                     this.$message({
                         message: '删除成功',
@@ -323,10 +322,6 @@ export default {
             }).catch(() => {
                 this.$message.error('删除失败')
             })
-        },
-        removeTableSubmit(row){
-            // 通过table的id删除实体,访问后端
-            return true
         },
         showTable(row) {
             console.log(row)
@@ -356,6 +351,7 @@ export default {
                 // 深拷贝
                 this.tableObj = JSON.parse(JSON.stringify(this.tableDefaultObj))
                 this.addTableModal = true
+                this.isEdit = 0
                 break
             case 'myBatchDel':
                 // 获取所有被选行
@@ -372,10 +368,10 @@ export default {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
-                }).then(() => {
+                }).then(async () => {
                     for(let i = 0; i < selectRecords.length; i++){
-                        let res = this.removeTableSubmit(selectRecords[i])
-                        if(!res){
+                        const res = await remove(selectRecords[i].id)
+                        if(!res.data){
                             this.$message.error('批量删除操作失败')
                             break;
                         }
@@ -431,21 +427,6 @@ export default {
             case 'saveTable':
                 // 准备填写表基本信息
                 if(this.tableObj.fields.length > 0){
-                    console.log(this.tableObj)
-                    const res = await add(this.tableObj)
-                    if(res.data){
-                        //创建成功
-                        this.$message({
-                            message: '创建成功',
-                            type: 'success'
-                        });
-                    }else{
-                        //创建失败
-                        this.$message({
-                            message: '创建失败',
-                            type: 'error'
-                        });
-                    }
                     this.addTableBasicInfoModal = true
                 }else{
                     this.$message({
@@ -489,13 +470,44 @@ export default {
         },
         async addTableSubmit() {
             let data = this.tableObj
-            console.log(data)
             if (this.checkDataBeforeSubmit(data)) {
-                // 数据校验成功，准备提交后端
-                //let res = await add(this.loginForm)
-                //console.log(res)
-                // 刷新数据对象列表
+                if(this.isEdit == 1){
+                    //修改
+                    const res = await update(this.tableObj)
+                    if(res.data){
+                        //修改成功
+                        this.$message({
+                            message: '修改成功',
+                            type: 'success'
+                        });
+                    }else{
+                        //修改失败
+                        this.$message({
+                            message: '修改失败',
+                            type: 'error'
+                        });
+                    }
+                }else{
+                    //新增
+                    const res = await add(this.tableObj)
+                    if(res.data){
+                        //创建成功
+                        this.$message({
+                            message: '创建成功',
+                            type: 'success'
+                        });
+                    }else{
+                        //创建失败
+                        this.$message({
+                            message: '创建失败',
+                            type: 'error'
+                        });
+                    }
+                }
             }
+            this.findList()
+            this.addTableBasicInfoModal = false
+            this.addTableModal = false
         },
         addTableReset() {
             let fields = this.tableObj.fields

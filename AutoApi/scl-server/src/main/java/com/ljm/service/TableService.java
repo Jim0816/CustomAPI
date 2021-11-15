@@ -30,6 +30,22 @@ public interface TableService {
     boolean add(Table table);
 
     /**
+     * 删除集合
+     * @param table
+     * @return
+     * @author Jim
+     */
+    boolean remove(Table table);
+
+    /**
+     * 修改集合
+     * @param table
+     * @return
+     * @author Jim
+     */
+    boolean update(Table table);
+
+    /**
      * 创建集合 ①创建空表 ②存储该表的描述信息
      * @param table 新建集合基本信息 tableMetaInfo表示sys_table表的结构信息
      * @return

@@ -13,9 +13,9 @@ export function add(data) {
 }
 
 export function update(data) {
-    return axios.post('/table/add', data)
+    return axios.post('/table/update', data)
 }
 
-export function remove() {
-    return axios.get('/table/remove')
+export function remove(id) {
+    return axios.get(`/table/remove?id=${id}`)
 }

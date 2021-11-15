@@ -11,6 +11,16 @@ import java.util.Map;
 
 public interface APIService {
 
+    boolean add(API api);
+
+    API get(API api);
+
+    List<API> list(API api);
+
+    boolean update(API api);
+
+    boolean remove(API api);
+
     /**
      * 根据请求对象,为前端产生一个接口数据
      * @param api 请求对象

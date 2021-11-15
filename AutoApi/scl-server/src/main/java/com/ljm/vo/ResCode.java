@@ -23,7 +23,10 @@ public enum ResCode {
     DELETE_USER_FAILED(500207, "用户删除失败", 0),
     TOKEN_ERROR_INVALID(500202, "token不存在或者token格式有误", 0),
     TOKEN_ERROR_EXPIRE(500203, "token已经过期", 0),
-    TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理", 0);
+    TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理", 0),
+
+    //API模块 5003XX
+    CREATE_API_FAILED(500301, "接口创建失败", 0);
 
     private final long code;
     private final String msg;
