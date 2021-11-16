@@ -1,6 +1,7 @@
 package com.ljm.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ljm.entity.API;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ public interface APIProviderService {
      * @return
      * @author Jim
      */
-    Map<String,Object> analysisApi(Map api);
+    Map<String,Object> analysisApi(API api);
 
     /**
      * 新增

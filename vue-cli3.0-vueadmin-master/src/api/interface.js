@@ -8,6 +8,10 @@ export function list() {
     return axios.get('/interface/list')
 }
 
+export function templates() {
+    return axios.get('/interface/templates')
+}
+
 export function add(data) {
     return axios.post('/interface/add', data)
 }

@@ -22,6 +22,8 @@ import solid from '@fortawesome/fontawesome-free-solid'
 import regular from '@fortawesome/fontawesome-free-regular'
 import brands from '@fortawesome/fontawesome-free-brands'
 
+import VueClipboard from 'vue-clipboard2'
+
 fontawesome.library.add(solid)
 fontawesome.library.add(regular)
 fontawesome.library.add(brands)
@@ -34,7 +36,7 @@ for (var key in globalFilter) {
     Vue.filter(key, globalFilter[key])
 }
 
-Vue.use(ElementUI).use(VXETable)
+Vue.use(ElementUI).use(VXETable).use(VueClipboard)
 
 Vue.config.productionTip = false
 

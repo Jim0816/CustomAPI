@@ -45,6 +45,14 @@ public class APIServiceImpl implements APIService {
 
     @Override
     public boolean add(API api) {
+        //1.注册接口对象
+        String operateType = (String) api.getRequire().get("operate");
+        String tag = api.getTableName() + ":" + operateType + "-" + StringUtil.generateByRandom(6);
+        //接口地址
+        StringBuffer sb = new StringBuffer("http://127.0.0.1:8081/service/data?tag=");
+        sb.append(tag);
+        api.setId(StringUtil.generateUUID()).setTag(tag).setUrl(sb.toString()).setIsDelete(0);
+
         if(commonService.tableIsExist(TABLE_NAME)){
             //表存在 -> 判断唯一键是否已经存在
             API queryAPI = new API();
@@ -211,34 +219,32 @@ public class APIServiceImpl implements APIService {
 
         API api = new API();
         api.setTableName(table.getTableName());
-        //api.setPermission(JSONObject.parseObject(properties.getProperty("permission")).getInnerMap());
+        List<String> permission = new ArrayList<>();
+        permission.add("*");
+        api.setPermission(permission);
         //1.基础新增
-        api.setRequire(JSONObject.parseObject(properties.getProperty("put_require")).getInnerMap());
+        api.setRequire(JSONObject.parseObject(properties.getProperty("add_require")).getInnerMap());
         api.setName("基础-新增");
         api.setDesc("基础新增接口");
-        api.setId(StringUtil.generateUUID());
-        addApi(api);
+        add(api);
 
         //2.基础查询
         api.setRequire(JSONObject.parseObject(properties.getProperty("get_require")).getInnerMap());
         api.setName("基础-查询");
         api.setDesc("基础查询接口,默认分页");
-        api.setId(StringUtil.generateUUID());
-        addApi(api);
+        add(api);
 
         //3.基础修改
-        api.setRequire(JSONObject.parseObject(properties.getProperty("post_require")).getInnerMap());
+        api.setRequire(JSONObject.parseObject(properties.getProperty("update_require")).getInnerMap());
         api.setName("基础-修改");
         api.setDesc("基础修改接口");
-        api.setId(StringUtil.generateUUID());
-        addApi(api);
+        add(api);
 
         //4.基础删除
         api.setRequire(JSONObject.parseObject(properties.getProperty("delete_require")).getInnerMap());
         api.setName("基础-删除");
         api.setDesc("基础删除接口");
-        api.setId(StringUtil.generateUUID());
-        addApi(api);
+        add(api);
 
         return true;
     }

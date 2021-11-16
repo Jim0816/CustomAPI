@@ -1,6 +1,7 @@
 package com.ljm.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ljm.entity.API;
 import com.ljm.parseMongo.SqlMongoDBParser;
 import com.ljm.parseMongo.model.FilterModel;
 import com.ljm.parseMongo.model.QueryModel;
@@ -15,7 +16,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +26,15 @@ public class APIProviderServiceImpl implements APIProviderService {
     private MongoDBUtil mongoDBUtil;
 
     @Override
-    public Map<String,Object> analysisApi(Map api) {
+    public Map<String,Object> analysisApi(API api) {
         //解析结果
         Map<String,Object> result = new HashMap<>();
 
         //1.操作对象表名
-        String tableName = api.get("model").toString();
+        String tableName = api.getTableName();
         result.put("tableName", tableName);
         //操作要求
-        Map<String,Object> require = (Map<String,Object>)api.get("require");
+        Map<String,Object> require = api.getRequire();
         //2.操作类型
         String operateType = require.get("operate").toString();
         result.put("operateType", operateType);
@@ -64,7 +64,7 @@ public class APIProviderServiceImpl implements APIProviderService {
                 result.put("limit", limitMap);
                 //返回字段
                 result.put("return", condition.get("return") == null ? "*" : condition.get("return").toString());
-            }else if(operateType.equals("post")){
+            }else if(operateType.equals("update")){
                 //更新操作,还可能指定修改字段
                 String update = condition.get("update") == null ? "*" : condition.get("update").toString();
                 result.put("update", update);
@@ -77,7 +77,7 @@ public class APIProviderServiceImpl implements APIProviderService {
 
     @Override
     public boolean add(Map<String, Object> operateCondition, JSONObject data) {
-        return mongoDBUtil.insertDocument(data, operateCondition.get("tableName").toString());
+        return mongoDBUtil.insertDocumentNeedCheckData(data,operateCondition.get("tableName").toString());
     }
 
     @Override

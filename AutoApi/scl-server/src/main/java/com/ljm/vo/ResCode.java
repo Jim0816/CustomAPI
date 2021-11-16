@@ -26,7 +26,8 @@ public enum ResCode {
     TOKEN_ERROR_EXIT(500204, "用户已经离线，token已被清理", 0),
 
     //API模块 5003XX
-    CREATE_API_FAILED(500301, "接口创建失败", 0);
+    CREATE_API_FAILED(500301, "接口创建失败", 0),
+    UPDATE_API_FAILED(500302, "接口修改失败", 0);
 
     private final long code;
     private final String msg;

@@ -28,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry){
         //记录不拦截的路径
         List<String> excludePath = new ArrayList<>();
-        excludePath.add("/user/**");  //登录
+        excludePath.add("/user/login");  //登录
         //excludePath.add("/static/**");  //静态资源
         //excludePath.add("/assets/**");  //静态资源
 

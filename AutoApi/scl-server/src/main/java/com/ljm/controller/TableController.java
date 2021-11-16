@@ -8,6 +8,8 @@ import com.ljm.vo.Res;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,9 +43,12 @@ public class TableController {
      * @author Jim
      */
     @PostMapping(value = "/add")
-    public Res add(@RequestBody Table table){
+    public Res add(@RequestBody Table table) throws IOException {
         table.setId(StringUtil.generateUUID());
-        return Res.ok(tableService.add(table));
+        if(tableService.add(table)){
+            return Res.ok(apiService.createBaseApis(table));
+        }
+        return Res.failed("创建失败");
     }
 
     /**

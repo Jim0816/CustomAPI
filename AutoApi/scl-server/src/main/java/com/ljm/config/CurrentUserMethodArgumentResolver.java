@@ -43,9 +43,10 @@ public class CurrentUserMethodArgumentResolver implements HandlerMethodArgumentR
         //校验token (token为空通过validToken校验结果为无效)
         Map<String, Object> checkResult = TokenUtil.validToken(token);
         JSONObject data = (JSONObject) checkResult.get("data");
-        String userId =  data.get("userId") == null ? null : data.get("userId").toString();
-        User user = new User();
-        //user = userService.get(user.setUserId(userId));
+        String uid =  data.get("uid").toString();
+        User queryUser = new User();
+        queryUser.setId(uid);
+        User user = userService.get(queryUser);
         AccessUser accessUser = new AccessUser();
         return  accessUser.transform(user);
     }

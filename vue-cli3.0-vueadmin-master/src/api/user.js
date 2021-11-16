@@ -15,3 +15,7 @@ export function updatePassword(data) {
 export function remove(data) {
     return axios.post('/user/remove', data)
 }
+
+export function list() {
+    return axios.get('/user/list')
+}
